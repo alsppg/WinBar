@@ -29,10 +29,11 @@ final class PreviewService {
         guard PermissionGate.screenRecording, !inFlight.contains(id) else { completion(nil); return }
         inFlight.insert(id)
         Task { [weak self] in
+            guard let self = self else { return }
             var result: CGImage? = nil
             do {
-                let content = try await self?.shareableContent()
-                if let win = content?.windows.first(where: { $0.windowID == id }) {
+                let content = try await self.shareableContent()
+                if let win = content.windows.first(where: { $0.windowID == id }) {
                     let filter = SCContentFilter(desktopIndependentWindow: win)
                     let config = SCStreamConfiguration()
                     let scale = min(maxSize.width / max(win.frame.width, 1), maxSize.height / max(win.frame.height, 1), 1)
@@ -47,8 +48,8 @@ final class PreviewService {
             }
             let image = result
             await MainActor.run {
-                self?.inFlight.remove(id)
-                if let image = image { self?.cache[id] = (image, Date()) }
+                self.inFlight.remove(id)
+                if let image = image { self.cache[id] = (image, Date()) }
                 completion(image)
             }
         }

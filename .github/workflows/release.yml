@@ -3,6 +3,11 @@ name: Release
 on:
   push:
     tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing tag to (re)build and attach assets to, e.g. v0.1.0"
+        required: true
 
 permissions:
   contents: write
@@ -12,22 +17,23 @@ jobs:
     name: Build and publish
     runs-on: macos-14
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4   # tag push: the tag; manual run: the branch it was started from (usually main)
       - name: Build
         env:
-          WINBAR_VERSION: ${{ github.ref_name }}
+          WINBAR_VERSION: ${{ github.event.inputs.tag || github.ref_name }}
         run: ./scripts/make-app.sh release
       - name: Package
         run: |
           mkdir -p dist
-          ditto -c -k --keepParent build/WinBar.app "dist/WinBar-${{ github.ref_name }}.zip"
-          (cd dist && shasum -a 256 "WinBar-${{ github.ref_name }}.zip" > "WinBar-${{ github.ref_name }}.zip.sha256")
+          TAG="${{ github.event.inputs.tag || github.ref_name }}"
+          ditto -c -k --keepParent build/WinBar.app "dist/WinBar-$TAG.zip"
+          (cd dist && shasum -a 256 "WinBar-$TAG.zip" > "WinBar-$TAG.zip.sha256")
           cat dist/*.sha256
       - name: Publish GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TAG="${{ github.ref_name }}"
+          TAG="${{ github.event.inputs.tag || github.ref_name }}"
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" dist/*.zip dist/*.sha256 --clobber
           else
