@@ -1,0 +1,14 @@
+name: Feature request / Sugestão
+description: Propose an improvement / Proponha uma melhoria
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What would you like WinBar to do? / O que você gostaria que o WinBar fizesse?
+    validations: { required: true }
+  - type: textarea
+    id: windows
+    attributes:
+      label: How does Windows 10 behave here? / Como o Windows 10 se comporta nesse caso?
+      description: WinBar follows the Windows 10 taskbar as the reference behaviour.

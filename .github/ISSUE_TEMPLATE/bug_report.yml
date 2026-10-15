@@ -1,0 +1,33 @@
+name: Bug report / Relatar bug
+description: Something is not working / Algo não está funcionando
+labels: [bug]
+body:
+  - type: input
+    id: version
+    attributes:
+      label: WinBar version / Versão do WinBar
+      placeholder: "v0.1.0 (right-click the bar › Settings › General)"
+    validations: { required: true }
+  - type: input
+    id: macos
+    attributes:
+      label: macOS version / Versão do macOS
+      placeholder: "14.6 / 15.1 / 26.0"
+    validations: { required: true }
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce / Passos para reproduzir
+      placeholder: "1. … 2. … 3. …"
+    validations: { required: true }
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected vs. actual / Esperado vs. observado
+    validations: { required: true }
+  - type: textarea
+    id: log
+    attributes:
+      label: Log (optional) / Log (opcional)
+      description: "~/Library/Logs/WinBar/winbar.log — it never contains window titles or personal paths."
+      render: text

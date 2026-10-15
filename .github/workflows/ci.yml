@@ -1,0 +1,26 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    paths-ignore: ["**.md", "docs/**"]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    name: Build (macOS)
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - name: Toolchain
+        run: xcrun swiftc --version
+      - name: Build release app
+        run: ./scripts/make-app.sh release
+      - name: Verify bundle
+        run: |
+          test -x build/WinBar.app/Contents/MacOS/WinBar
+          codesign --verify --verbose=2 build/WinBar.app
+          /usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" build/WinBar.app/Contents/Info.plist
+      - name: Shell scripts syntax
+        run: for f in install.sh scripts/*.sh; do bash -n "$f"; done
