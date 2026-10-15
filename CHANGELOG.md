@@ -7,6 +7,9 @@ All notable changes to WinBar are documented here. The format follows [Keep a Ch
 ### Added
 - `install.sh --uninstall` now removes everything (app, settings, pins, logs, caches, Accessibility/Screen Recording grants); `--restore-dock` undoes `--dock-left`. `scripts/make-cert.sh --remove` deletes the local signing identity.
 
+### Fixed
+- One-line installer failed on macOS with `REPO?: unbound variable`: bash 3.2 swallowed the Unicode ellipsis after `$REPO` into the variable name. `install.sh` is now pure ASCII.
+
 ### Roadmap
 - English user interface (currently pt-BR)
 - Badges and "wants attention" flash on app buttons

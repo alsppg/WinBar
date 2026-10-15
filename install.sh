@@ -1,5 +1,5 @@
 #!/bin/bash
-# WinBar installer — downloads the latest release from GitHub and installs it in /Applications.
+# WinBar installer - downloads the latest release from GitHub and installs it in /Applications.
 #   curl -fsSL https://raw.githubusercontent.com/alsppg/WinBar/main/install.sh | bash
 # Options:  --dock-left     also moves the macOS Dock to the left edge, enables auto-hide and
 #                           disables the bottom-right Hot Corner (so the bottom edge belongs to WinBar)
@@ -29,41 +29,41 @@ restore_dock() {
 }
 
 if [ "${1:-}" = "--uninstall" ]; then
-  say "Quitting $APP_NAME…"
+  say "Quitting ${APP_NAME}..."
   pkill -x "$APP_NAME" 2>/dev/null || true
   sleep 1
-  say "Removing app, settings, pinned apps, logs and caches…"
+  say "Removing app, settings, pinned apps, logs and caches..."
   rm -rf "$DEST" "$HOME/Applications/$APP_NAME.app" \
          "$HOME/Library/Application Support/$APP_NAME" \
          "$HOME/Library/Logs/$APP_NAME" \
          "$HOME/Library/Caches/$BUNDLE_ID" \
          "$HOME/Library/Saved Application State/$BUNDLE_ID.savedState"
   defaults delete "$BUNDLE_ID" 2>/dev/null || true
-  say "Revoking Accessibility and Screen Recording grants…"
+  say "Revoking Accessibility and Screen Recording grants..."
   tccutil reset Accessibility "$BUNDLE_ID" >/dev/null 2>&1 || true
   tccutil reset ScreenCapture "$BUNDLE_ID" >/dev/null 2>&1 || true
   tccutil reset AppleEvents "$BUNDLE_ID" >/dev/null 2>&1 || true
   if [ "${2:-}" = "--restore-dock" ]; then restore_dock; fi
-  say "$APP_NAME removed. If it still shows under System Settings › General › Login Items, toggle it off there."
+  say "$APP_NAME removed. If it still shows under System Settings > General > Login Items, toggle it off there."
   exit 0
 fi
 
 major="$(sw_vers -productVersion | cut -d. -f1)"
 [ "$major" -ge 14 ] || die "macOS 14 (Sonoma) or newer is required (found $(sw_vers -productVersion))."
 
-say "Looking up the latest release of $REPO…"
+say "Looking up the latest release of ${REPO}..."
 json="$(curl -fsSL "https://api.github.com/repos/$REPO/releases/latest")" || die "Could not reach GitHub."
 url="$(printf '%s' "$json" | grep -o '"browser_download_url": *"[^"]*'"$APP_NAME"'-[^"]*\.zip"' | head -1 | cut -d'"' -f4)"
 [ -n "$url" ] || die "No release asset found. Build from source instead: see README."
 tag="$(printf '%s' "$json" | grep -o '"tag_name": *"[^"]*"' | head -1 | cut -d'"' -f4)"
 
 tmp="$(mktemp -d)"; trap 'rm -rf "$tmp"' EXIT
-say "Downloading $APP_NAME $tag…"
+say "Downloading $APP_NAME ${tag}..."
 curl -fsSL "$url" -o "$tmp/app.zip"
 if curl -fsSL "$url.sha256" -o "$tmp/app.zip.sha256" 2>/dev/null; then
   expected="$(cut -d' ' -f1 "$tmp/app.zip.sha256")"
   actual="$(shasum -a 256 "$tmp/app.zip" | cut -d' ' -f1)"
-  [ "$expected" = "$actual" ] || die "Checksum mismatch — download corrupted. Try again."
+  [ "$expected" = "$actual" ] || die "Checksum mismatch - download corrupted. Try again."
   say "Checksum OK."
 fi
 
