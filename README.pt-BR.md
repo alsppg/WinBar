@@ -81,7 +81,31 @@ Dica: `scripts/fast-animations.sh` encurta as animações de minimizar/restaurar
 
 - Nenhum acesso à rede, sem analytics, sem conta, sem verificador de atualização. Confira com `nettop -p WinBar`.
 - Os dados ficam só em `~/Library/Preferences/io.github.alsppg.winbar.plist`, `~/Library/Application Support/WinBar/pins.json` (modo 600) e `~/Library/Logs/WinBar/winbar.log` (rotação em 1 MB; nunca contém títulos de janela nem caminhos pessoais).
-- Desinstalar: `curl -fsSL https://raw.githubusercontent.com/alsppg/WinBar/main/install.sh | bash -s -- --uninstall`
+
+## Desinstalar
+
+Uma linha remove tudo que o WinBar criou — app, ajustes, apps fixados, logs, caches e as permissões de Acessibilidade / Gravação de Tela:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/alsppg/WinBar/main/install.sh | bash -s -- --uninstall
+```
+
+Acrescente `--restore-dock` para também devolver o Dock do macOS à borda inferior e reativar o Canto Ativo inferior direito (desfaz o `--dock-left`):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/alsppg/WinBar/main/install.sh | bash -s -- --uninstall --restore-dock
+```
+
+Equivalente manual, se preferir ver cada passo:
+
+```bash
+pkill -x WinBar
+rm -rf /Applications/WinBar.app ~/Library/Application\ Support/WinBar ~/Library/Logs/WinBar ~/Library/Caches/io.github.alsppg.winbar
+defaults delete io.github.alsppg.winbar
+tccutil reset Accessibility io.github.alsppg.winbar && tccutil reset ScreenCapture io.github.alsppg.winbar
+```
+
+Se o WinBar ainda aparecer em *Ajustes do Sistema › Geral › Itens de Início*, desligue ali. Compilou do fonte? Rode também `./scripts/make-cert.sh --remove` para apagar a identidade de assinatura local "WinBar Dev" e apague a pasta clonada.
 
 ## Limitações conhecidas
 

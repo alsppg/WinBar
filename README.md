@@ -81,7 +81,31 @@ Tip: `scripts/fast-animations.sh` shortens the macOS minimize/restore animations
 
 - No network access at all, no analytics, no accounts, no update checker. Verify with `nettop -p WinBar`.
 - Data lives only in `~/Library/Preferences/io.github.alsppg.winbar.plist`, `~/Library/Application Support/WinBar/pins.json` (mode 600) and `~/Library/Logs/WinBar/winbar.log` (1 MB rotation; never contains window titles or personal paths).
-- Uninstall: `curl -fsSL https://raw.githubusercontent.com/alsppg/WinBar/main/install.sh | bash -s -- --uninstall`
+
+## Uninstall
+
+One line removes everything WinBar created — the app, settings, pinned apps, logs, caches and the Accessibility / Screen Recording grants:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/alsppg/WinBar/main/install.sh | bash -s -- --uninstall
+```
+
+Add `--restore-dock` to also put the macOS Dock back at the bottom and re-enable the bottom-right Hot Corner (undoing `--dock-left`):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/alsppg/WinBar/main/install.sh | bash -s -- --uninstall --restore-dock
+```
+
+Manual equivalent, if you prefer to see every step:
+
+```bash
+pkill -x WinBar
+rm -rf /Applications/WinBar.app ~/Library/Application\ Support/WinBar ~/Library/Logs/WinBar ~/Library/Caches/io.github.alsppg.winbar
+defaults delete io.github.alsppg.winbar
+tccutil reset Accessibility io.github.alsppg.winbar && tccutil reset ScreenCapture io.github.alsppg.winbar
+```
+
+If WinBar still appears under *System Settings › General › Login Items*, toggle it off there. Built from source? Also run `./scripts/make-cert.sh --remove` to delete the local "WinBar Dev" signing identity, and delete the cloned folder.
 
 ## Known limitations
 

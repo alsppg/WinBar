@@ -4,6 +4,9 @@ All notable changes to WinBar are documented here. The format follows [Keep a Ch
 
 ## [Unreleased]
 
+### Added
+- `install.sh --uninstall` now removes everything (app, settings, pins, logs, caches, Accessibility/Screen Recording grants); `--restore-dock` undoes `--dock-left`. `scripts/make-cert.sh --remove` deletes the local signing identity.
+
 ### Roadmap
 - English user interface (currently pt-BR)
 - Badges and "wants attention" flash on app buttons

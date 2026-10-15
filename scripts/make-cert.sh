@@ -5,6 +5,12 @@
 set -euo pipefail
 
 NAME="WinBar Dev"
+if [ "${1:-}" = "--remove" ]; then
+  # Remove o certificado e a chave privada do Keychain de login (desinstalação de quem compila do fonte)
+  security delete-identity -c "$NAME" "$HOME/Library/Keychains/login.keychain-db" 2>/dev/null \
+    || security delete-certificate -c "$NAME" "$HOME/Library/Keychains/login.keychain-db" 2>/dev/null || true
+  echo "Identidade \"$NAME\" removida (se existia)."; exit 0
+fi
 if security find-identity -v -p codesigning | grep -q "\"$NAME\""; then
   echo "Identidade \"$NAME\" já existe."; exit 0
 fi

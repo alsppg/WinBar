@@ -1,25 +1,51 @@
 #!/bin/bash
 # WinBar installer — downloads the latest release from GitHub and installs it in /Applications.
 #   curl -fsSL https://raw.githubusercontent.com/alsppg/WinBar/main/install.sh | bash
-# Options:  --dock-left   also moves the macOS Dock to the left edge, enables auto-hide and
-#                         disables the bottom-right Hot Corner (so the bottom edge belongs to WinBar)
-#           --uninstall   removes WinBar and its data
+# Options:  --dock-left     also moves the macOS Dock to the left edge, enables auto-hide and
+#                           disables the bottom-right Hot Corner (so the bottom edge belongs to WinBar)
+#           --uninstall     removes WinBar completely: app, settings, pinned apps, logs, caches and the
+#                           Accessibility / Screen Recording grants
+#           --restore-dock  (with --uninstall) puts the Dock back at the bottom and re-enables the Hot Corner
 # Everything stays local: no telemetry, no accounts. Run without sudo.
 set -euo pipefail
 
 REPO="alsppg/WinBar"
 APP_NAME="WinBar"
+BUNDLE_ID="io.github.alsppg.winbar"
 DEST="/Applications/$APP_NAME.app"
 
 say() { printf '\033[1;34m==>\033[0m %s\n' "$*"; }
 die() { printf '\033[1;31mERROR:\033[0m %s\n' "$*" >&2; exit 1; }
 
 [ "$(uname -s)" = "Darwin" ] || die "WinBar runs on macOS only."
+
+restore_dock() {
+  defaults write com.apple.dock orientation -string bottom
+  defaults write com.apple.dock autohide -bool false
+  defaults delete com.apple.dock wvous-br-corner 2>/dev/null || true
+  defaults delete com.apple.dock wvous-br-modifier 2>/dev/null || true
+  killall Dock 2>/dev/null || true
+  say "Dock back at the bottom; bottom-right Hot Corner restored to the macOS default."
+}
+
 if [ "${1:-}" = "--uninstall" ]; then
+  say "Quitting $APP_NAME…"
   pkill -x "$APP_NAME" 2>/dev/null || true
-  rm -rf "$DEST" "$HOME/Library/Application Support/$APP_NAME" "$HOME/Library/Logs/$APP_NAME"
-  defaults delete io.github.alsppg.winbar 2>/dev/null || true
-  say "WinBar removed."; exit 0
+  sleep 1
+  say "Removing app, settings, pinned apps, logs and caches…"
+  rm -rf "$DEST" "$HOME/Applications/$APP_NAME.app" \
+         "$HOME/Library/Application Support/$APP_NAME" \
+         "$HOME/Library/Logs/$APP_NAME" \
+         "$HOME/Library/Caches/$BUNDLE_ID" \
+         "$HOME/Library/Saved Application State/$BUNDLE_ID.savedState"
+  defaults delete "$BUNDLE_ID" 2>/dev/null || true
+  say "Revoking Accessibility and Screen Recording grants…"
+  tccutil reset Accessibility "$BUNDLE_ID" >/dev/null 2>&1 || true
+  tccutil reset ScreenCapture "$BUNDLE_ID" >/dev/null 2>&1 || true
+  tccutil reset AppleEvents "$BUNDLE_ID" >/dev/null 2>&1 || true
+  if [ "${2:-}" = "--restore-dock" ]; then restore_dock; fi
+  say "$APP_NAME removed. If it still shows under System Settings › General › Login Items, toggle it off there."
+  exit 0
 fi
 
 major="$(sw_vers -productVersion | cut -d. -f1)"
