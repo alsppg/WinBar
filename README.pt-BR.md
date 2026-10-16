@@ -22,6 +22,7 @@
 - **Relógio** em duas linhas com calendário do mês; botão **Mostrar área de trabalho** no canto inferior direito (ou clique em qualquer área vazia da barra).
 - **Janelas sempre acima da barra**: janelas maximizadas ou movidas são redimensionadas para terminar na barra, como a área de trabalho do Windows.
 - Alturas 30/40/48/56 pt, variante escura ou na cor de destaque, transparência ligada/desligada. Control+Option+1…9 ativa o botão N.
+- **Inicia com o macOS** e volta sozinho se algum dia cair: um LaunchAgent do usuário, ligado por padrão (*Ajustes › Inicialização* para desligar; aparece em *Ajustes do Sistema › Geral › Itens de Início › Permitir em segundo plano*). *Sair* é respeitado até o próximo login.
 
 ## Instalação
 
@@ -64,7 +65,7 @@ O WinBar pede duas permissões na janela de boas‑vindas:
 | **Acessibilidade** | listar, ativar, redimensionar e fechar janelas dos outros apps | sim |
 | **Gravação de Tela** | miniaturas ao vivo das janelas (sem ela, o card mostra só ícone + título) | não |
 
-Conceda em *Ajustes do Sistema › Privacidade e Segurança* e clique em **Relançar**. O app não tem ícone no Dock: vive na barra e num ícone pequeno na barra de menus (Ajustes / Relançar / Sair).
+Conceda em *Ajustes do Sistema › Privacidade e Segurança* e clique em **Relançar**. O app não tem ícone no Dock: vive na barra e num ícone pequeno na barra de menus (Ajustes / Relançar / Sair). Ele é iniciado e supervisionado pelo launchd: `launchctl print gui/$(id -u)/io.github.alsppg.winbar` mostra o estado.
 
 **Atualizou e a barra não mostra nenhuma janela?** A permissão de Acessibilidade fica presa à assinatura do app; desligue e ligue o WinBar em *Acessibilidade* (a janela de boas‑vindas reabre avisando isso). Instalar pela linha única deixa a assinatura estável e isso para de acontecer.
 
@@ -90,7 +91,7 @@ Dica: `scripts/fast-animations.sh` encurta as animações de minimizar/restaurar
 
 ## Desinstalar
 
-Uma linha remove tudo que o WinBar criou — app, ajustes, apps fixados, logs, caches, o certificado local "WinBar Dev" e as permissões de Acessibilidade / Gravação de Tela:
+Uma linha remove tudo que o WinBar criou — app, agente de início com o sistema, ajustes, apps fixados, logs, caches, o certificado local "WinBar Dev" e as permissões de Acessibilidade / Gravação de Tela:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/alsppg/WinBar/main/install.sh | bash -s -- --uninstall
@@ -105,6 +106,7 @@ curl -fsSL https://raw.githubusercontent.com/alsppg/WinBar/main/install.sh | bas
 Equivalente manual, se preferir ver cada passo:
 
 ```bash
+launchctl bootout gui/$(id -u)/io.github.alsppg.winbar; rm -f ~/Library/LaunchAgents/io.github.alsppg.winbar.plist
 pkill -x WinBar
 rm -rf /Applications/WinBar.app ~/Library/Application\ Support/WinBar ~/Library/Logs/WinBar ~/Library/Caches/io.github.alsppg.winbar
 defaults delete io.github.alsppg.winbar

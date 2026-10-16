@@ -10,6 +10,16 @@ All notable changes to WinBar are documented here. The format follows [Keep a Ch
 - Tray icons: volume, battery, Wi-Fi
 - Homebrew cask
 
+## [0.1.3] — 2026-10-16
+
+### Added
+- **Starts with macOS by default.** A per-user LaunchAgent (`~/Library/LaunchAgents/io.github.alsppg.winbar.plist`, RunAtLoad + KeepAlive on crash) replaces the `SMAppService` login item: it does not depend on code signing, its state is checkable with `launchctl`, and WinBar is reopened automatically if it ever crashes (a normal *Quit* is not). The app writes and repairs the agent on every launch when the setting is on; `install.sh` registers it too, so the first run is already supervised by launchd. `--uninstall` removes it.
+- Single-instance guard: a second copy (agent + old login item + manual open) exits immediately.
+
+### Changed
+- *Relaunch* goes through `launchctl kickstart` when the agent is loaded, so the new instance stays managed by launchd.
+- Migration 2 turns *start at login* on for existing installs and removes the old login-item registration.
+
 ## [0.1.2] — 2026-10-15
 
 ### Fixed

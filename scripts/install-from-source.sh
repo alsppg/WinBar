@@ -17,6 +17,7 @@ if [ "${1:-}" = "--dock-left" ]; then
   echo "==> Dock movido para a esquerda com auto-ocultar; Hot Corner inferior direito desligado."
 fi
 
+launchctl bootout "gui/$(id -u)/io.github.alsppg.winbar" 2>/dev/null || true   # senao o launchd reabre a copia antiga
 pkill -x WinBar 2>/dev/null || true
 rm -rf /Applications/WinBar.app
 cp -R build/WinBar.app /Applications/WinBar.app

@@ -22,6 +22,7 @@
 - **Clock** in two lines with a month calendar fly-out; **Show desktop** button in the bottom-right corner (also: click any empty area of the bar).
 - **Windows stay above the bar**: maximized or moved windows are resized to end at the bar, like the Windows work area.
 - Bar heights 30/40/48/56 pt, dark or accent-colour variant, transparency on/off. Control+Option+1…9 activates button N.
+- **Starts with macOS** and comes back by itself if it ever crashes: a per-user LaunchAgent, on by default (*Settings › Inicialização* to turn off; listed under *System Settings › General › Login Items › Allow in the Background*). *Quit* is respected until the next login.
 
 ## Install
 
@@ -64,7 +65,7 @@ WinBar asks for two permissions in its welcome window:
 | **Accessibility** | list, activate, resize and close other apps' windows | yes |
 | **Screen Recording** | live window thumbnails (without it the card shows icon + title only) | no |
 
-Grant them in *System Settings › Privacy & Security*, then click **Relaunch**. The app has no Dock icon; it lives in the bar and in a small menu-bar icon (Settings / Relaunch / Quit).
+Grant them in *System Settings › Privacy & Security*, then click **Relaunch**. The app has no Dock icon; it lives in the bar and in a small menu-bar icon (Settings / Relaunch / Quit). It is started and supervised by launchd: `launchctl print gui/$(id -u)/io.github.alsppg.winbar` shows its state.
 
 **Updated and the bar shows no windows?** The Accessibility grant is tied to the app's signature; toggle WinBar off and on in *Accessibility* (the welcome window reopens and says so). Installing with the one-liner makes the signature stable, so this stops happening.
 
@@ -90,7 +91,7 @@ Tip: `scripts/fast-animations.sh` shortens the macOS minimize/restore animations
 
 ## Uninstall
 
-One line removes everything WinBar created — the app, settings, pinned apps, logs, caches, the local "WinBar Dev" signing certificate and the Accessibility / Screen Recording grants:
+One line removes everything WinBar created — the app, the start-at-login agent, settings, pinned apps, logs, caches, the local "WinBar Dev" signing certificate and the Accessibility / Screen Recording grants:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/alsppg/WinBar/main/install.sh | bash -s -- --uninstall
@@ -105,6 +106,7 @@ curl -fsSL https://raw.githubusercontent.com/alsppg/WinBar/main/install.sh | bas
 Manual equivalent, if you prefer to see every step:
 
 ```bash
+launchctl bootout gui/$(id -u)/io.github.alsppg.winbar; rm -f ~/Library/LaunchAgents/io.github.alsppg.winbar.plist
 pkill -x WinBar
 rm -rf /Applications/WinBar.app ~/Library/Application\ Support/WinBar ~/Library/Logs/WinBar ~/Library/Caches/io.github.alsppg.winbar
 defaults delete io.github.alsppg.winbar

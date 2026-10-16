@@ -1,6 +1,5 @@
 import SwiftUI
 import AppKit
-import ServiceManagement
 
 /// Janela de Ajustes (SwiftUI nativo). Sem registro, licença, conta ou atualizador.
 struct SettingsView: View {
@@ -82,7 +81,7 @@ struct SettingsView: View {
     private var generalTab: some View {
         Form {
             Section("Inicialização") {
-                Toggle("Abrir o WinBar ao iniciar a sessão", isOn: Binding(
+                Toggle("Abrir o WinBar ao iniciar a sessão (e reabrir sozinho se ele cair)", isOn: Binding(
                     get: { store.settings.launchAtLogin },
                     set: { on in store.settings.launchAtLogin = on; LoginItem.set(enabled: on) }))
             }
@@ -113,14 +112,6 @@ struct SettingsView: View {
             Spacer()
             if !ok { Button("Abrir Ajustes do Sistema", action: open) }
         }
-    }
-}
-
-enum LoginItem {
-    static func set(enabled: Bool) {
-        do {
-            if enabled { try SMAppService.mainApp.register() } else { try SMAppService.mainApp.unregister() }
-        } catch { Log.warn("login item: \(error.localizedDescription)") }
     }
 }
 

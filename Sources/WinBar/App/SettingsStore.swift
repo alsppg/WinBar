@@ -62,7 +62,7 @@ struct Settings: Codable, Equatable {
     var migrationLevel = 0
     var previewDelayMs = 400
     var startHotkey: HotKeySpec? = .ctrlEsc
-    var launchAtLogin = false
+    var launchAtLogin = true      // LaunchAgent do usuário; ver LoginItem
     var allScreens = true
     var excludedBundleIDs: [String] = []
     var manualOrder: [String] = []   // bundleIDs na ordem escolhida por arrasto

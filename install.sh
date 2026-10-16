@@ -4,14 +4,18 @@
 # Options:  --dock-left     also moves the macOS Dock to the left edge, enables auto-hide and
 #                           disables the bottom-right Hot Corner (so the bottom edge belongs to WinBar)
 #           --no-resign     keep the ad-hoc signature of the release (see "Signing" below)
-#           --uninstall     removes WinBar completely: app, settings, pinned apps, logs, caches, the local
-#                           signing certificate and the Accessibility / Screen Recording grants
+#           --uninstall     removes WinBar completely: app, start-at-login agent, settings, pinned apps, logs,
+#                           caches, the local signing certificate and the Accessibility / Screen Recording grants
 #           --restore-dock  (with --uninstall) puts the Dock back at the bottom and re-enables the Hot Corner
 # Signing: the release is signed ad-hoc (no paid Apple certificate). macOS ties the Accessibility and
 # Screen Recording grants to the signature, and an ad-hoc signature changes with every build - so every
 # update would silently lose them (the switch stays on in System Settings but no longer counts). To keep
 # the grants stable the installer creates ONE self-signed "WinBar Dev" certificate in your login keychain
 # and signs the app with it (same as scripts/make-cert.sh for source builds). Nothing leaves the Mac.
+# Start at login: a per-user LaunchAgent (~/Library/LaunchAgents/io.github.alsppg.winbar.plist) opens WinBar
+# with the session and reopens it if it ever crashes ("Quit" is a clean exit and is not reopened). It shows
+# under System Settings > General > Login Items > Allow in the Background. The app keeps it in sync with the
+# "start at login" setting; the installer registers it so WinBar is managed by launchd from the first run.
 # Everything stays local: no telemetry, no accounts. Run without sudo.
 set -euo pipefail
 
@@ -21,6 +25,8 @@ BUNDLE_ID="io.github.alsppg.winbar"
 DEST="/Applications/$APP_NAME.app"
 IDENTITY="WinBar Dev"
 KEYCHAIN="$HOME/Library/Keychains/login.keychain-db"
+AGENT_PLIST="$HOME/Library/LaunchAgents/$BUNDLE_ID.plist"
+DOMAIN="gui/$(id -u)"
 
 say() { printf '\033[1;34m==>\033[0m %s\n' "$*"; }
 die() { printf '\033[1;31mERROR:\033[0m %s\n' "$*" >&2; exit 1; }
@@ -51,6 +57,35 @@ reset_grants() {
   tccutil reset Accessibility "$BUNDLE_ID" >/dev/null 2>&1 || true
   tccutil reset ScreenCapture "$BUNDLE_ID" >/dev/null 2>&1 || true
   tccutil reset AppleEvents "$BUNDLE_ID" >/dev/null 2>&1 || true
+}
+
+# Stops a running copy whether launchd or the user started it (bootout first, or launchd would reopen it).
+stop_app() {
+  launchctl bootout "$DOMAIN/$BUNDLE_ID" 2>/dev/null || true
+  pkill -x "$APP_NAME" 2>/dev/null || true
+  sleep 1
+}
+
+# Writes the LaunchAgent and loads it; loading starts the app (RunAtLoad). Returns 1 if launchd refused.
+install_agent() {
+  mkdir -p "$HOME/Library/LaunchAgents"
+  cat > "$AGENT_PLIST" <<PLIST
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>$BUNDLE_ID</string>
+  <key>ProgramArguments</key><array><string>$DEST/Contents/MacOS/$APP_NAME</string></array>
+  <key>RunAtLoad</key><true/>
+  <key>KeepAlive</key><dict><key>SuccessfulExit</key><false/></dict>
+  <key>ProcessType</key><string>Interactive</string>
+  <key>LimitLoadToSessionType</key><string>Aqua</string>
+</dict>
+</plist>
+PLIST
+  chmod 644 "$AGENT_PLIST"
+  launchctl enable "$DOMAIN/$BUNDLE_ID" 2>/dev/null || true
+  launchctl bootstrap "$DOMAIN" "$AGENT_PLIST" 2>/dev/null
 }
 
 has_identity() { security find-identity -v -p codesigning 2>/dev/null | grep -q "\"$IDENTITY\""; }
@@ -88,9 +123,9 @@ EOF
 
 if [ "$UNINSTALL" = 1 ]; then
   say "Quitting ${APP_NAME}..."
-  pkill -x "$APP_NAME" 2>/dev/null || true
-  sleep 1
-  say "Removing app, settings, pinned apps, logs and caches..."
+  stop_app
+  say "Removing app, start-at-login agent, settings, pinned apps, logs and caches..."
+  rm -f "$AGENT_PLIST"
   rm -rf "$DEST" "$HOME/Applications/$APP_NAME.app" \
          "$HOME/Library/Application Support/$APP_NAME" \
          "$HOME/Library/Logs/$APP_NAME" \
@@ -157,7 +192,7 @@ if [ "$DOCK_LEFT" = 1 ]; then
   say "Dock moved to the left (auto-hide on); bottom-right Hot Corner disabled."
 fi
 
-pkill -x "$APP_NAME" 2>/dev/null || true
+stop_app
 upgrade=0; [ -d "$DEST" ] && upgrade=1
 rm -rf "$DEST"
 cp -R "$NEW" "$DEST"
@@ -169,8 +204,12 @@ if [ "$upgrade" = 1 ] && { [ "$old_stable" = 0 ] || [ "$signed" = 0 ]; }; then
   reset_grants; regrant=1
 fi
 
-open -n "$DEST"
-say "Installed $DEST"
+if install_agent; then
+  say "Installed $DEST - started by launchd; opens at login and reopens if it crashes."
+else
+  open -n "$DEST"
+  say "Installed $DEST (launchd refused the agent; the app registers it itself on first run)."
+fi
 if [ "$regrant" = 1 ]; then
   cat <<'EOF'
 The app signature changed with this update, so macOS dropped the old permissions: in the welcome window

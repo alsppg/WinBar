@@ -8,10 +8,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var onboardingWindow: NSWindow?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        Log.info("WinBar iniciou")
+        // Instância única: o LaunchAgent, um "open" e um Item de Início antigo podem coincidir no login.
+        // A recém-chegada sai com código 0 (o launchd não a reabre) e a que já estava fica.
+        let myPID = ProcessInfo.processInfo.processIdentifier
+        if let bid = Bundle.main.bundleIdentifier,
+           NSRunningApplication.runningApplications(withBundleIdentifier: bid).contains(where: { $0.processIdentifier != myPID }) {
+            Log.info("outra instância do WinBar já está aberta; esta sai")
+            exit(0)
+        }
+        Log.info("WinBar iniciou" + (LoginItem.launchedByLaunchd ? " (pelo launchd)" : ""))
         _ = SettingsStore.shared
         _ = PinStore.shared
         migrate()
+        LoginItem.ensure(enabled: SettingsStore.shared.s.launchAtLogin)
         _ = AppTracker.shared
         StartIndex.shared.refreshIfStale()
 
@@ -41,6 +50,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             PinStore.shared.unpin(bundleID: "com.apple.mail")
             PinStore.shared.unpin(bundleID: "com.apple.systempreferences")
             Log.info("migração 1 aplicada")
+        }
+        if s.migrationLevel < 2 {
+            // Iniciar com o sistema passa a ser padrão (LaunchAgent); o registro antigo via SMAppService sai
+            // para não abrir duas instâncias no login.
+            s.launchAtLogin = true
+            s.migrationLevel = 2
+            SettingsStore.shared.settings = s
+            LoginItem.removeLegacyRegistration()
+            Log.info("migração 2 aplicada")
         }
     }
 
