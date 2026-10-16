@@ -35,11 +35,14 @@ curl -fsSL https://raw.githubusercontent.com/alsppg/WinBar/main/install.sh | bas
 
 It downloads the latest [release](https://github.com/alsppg/WinBar/releases/latest), verifies its SHA-256, installs `/Applications/WinBar.app` and opens it. `--dock-left` moves the macOS Dock to the left edge with auto-hide and turns off the bottom-right Hot Corner, so the bottom edge belongs to WinBar (omit it to leave the Dock alone).
 
+The installer also creates a local self-signed certificate ("WinBar Dev") in your login keychain and signs the app with it. macOS ties the Accessibility and Screen Recording grants to the app's signature, and the ad-hoc signature of a release changes with every build — without this, every update would silently lose the permissions. Nothing leaves your Mac; macOS may ask for your login password once. `--no-resign` skips it.
+
 ### Option 2 — download
 
 1. Download `WinBar-vX.Y.Z.zip` from the [latest release](https://github.com/alsppg/WinBar/releases/latest) and unzip it.
 2. Move `WinBar.app` to `/Applications`.
 3. WinBar is signed ad-hoc (no paid Apple certificate), so Gatekeeper will warn once. Either run `xattr -dr com.apple.quarantine /Applications/WinBar.app` in Terminal, or open it and then allow it in *System Settings › Privacy & Security › Open Anyway*.
+4. After every manual update, turn WinBar off and on again under *System Settings › Privacy & Security › Accessibility* (and Screen Recording): the grants are tied to the signature, which changes with each release. The one-line installer avoids this.
 
 ### Option 3 — build from source
 
@@ -63,6 +66,8 @@ WinBar asks for two permissions in its welcome window:
 
 Grant them in *System Settings › Privacy & Security*, then click **Relaunch**. The app has no Dock icon; it lives in the bar and in a small menu-bar icon (Settings / Relaunch / Quit).
 
+**Updated and the bar shows no windows?** The Accessibility grant is tied to the app's signature; toggle WinBar off and on in *Accessibility* (the welcome window reopens and says so). Installing with the one-liner makes the signature stable, so this stops happening.
+
 ## Using it
 
 | Action | Result |
@@ -85,7 +90,7 @@ Tip: `scripts/fast-animations.sh` shortens the macOS minimize/restore animations
 
 ## Uninstall
 
-One line removes everything WinBar created — the app, settings, pinned apps, logs, caches and the Accessibility / Screen Recording grants:
+One line removes everything WinBar created — the app, settings, pinned apps, logs, caches, the local "WinBar Dev" signing certificate and the Accessibility / Screen Recording grants:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/alsppg/WinBar/main/install.sh | bash -s -- --uninstall
@@ -106,7 +111,7 @@ defaults delete io.github.alsppg.winbar
 tccutil reset Accessibility io.github.alsppg.winbar && tccutil reset ScreenCapture io.github.alsppg.winbar
 ```
 
-If WinBar still appears under *System Settings › General › Login Items*, toggle it off there. Built from source? Also run `./scripts/make-cert.sh --remove` to delete the local "WinBar Dev" signing identity, and delete the cloned folder.
+If WinBar still appears under *System Settings › General › Login Items*, toggle it off there. Built from source? Delete the cloned folder too (`./scripts/make-cert.sh --remove` deletes the "WinBar Dev" identity if you skip the one-liner).
 
 ## Known limitations
 

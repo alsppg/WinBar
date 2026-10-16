@@ -3,9 +3,15 @@
 #   curl -fsSL https://raw.githubusercontent.com/alsppg/WinBar/main/install.sh | bash
 # Options:  --dock-left     also moves the macOS Dock to the left edge, enables auto-hide and
 #                           disables the bottom-right Hot Corner (so the bottom edge belongs to WinBar)
-#           --uninstall     removes WinBar completely: app, settings, pinned apps, logs, caches and the
-#                           Accessibility / Screen Recording grants
+#           --no-resign     keep the ad-hoc signature of the release (see "Signing" below)
+#           --uninstall     removes WinBar completely: app, settings, pinned apps, logs, caches, the local
+#                           signing certificate and the Accessibility / Screen Recording grants
 #           --restore-dock  (with --uninstall) puts the Dock back at the bottom and re-enables the Hot Corner
+# Signing: the release is signed ad-hoc (no paid Apple certificate). macOS ties the Accessibility and
+# Screen Recording grants to the signature, and an ad-hoc signature changes with every build - so every
+# update would silently lose them (the switch stays on in System Settings but no longer counts). To keep
+# the grants stable the installer creates ONE self-signed "WinBar Dev" certificate in your login keychain
+# and signs the app with it (same as scripts/make-cert.sh for source builds). Nothing leaves the Mac.
 # Everything stays local: no telemetry, no accounts. Run without sudo.
 set -euo pipefail
 
@@ -13,11 +19,24 @@ REPO="alsppg/WinBar"
 APP_NAME="WinBar"
 BUNDLE_ID="io.github.alsppg.winbar"
 DEST="/Applications/$APP_NAME.app"
+IDENTITY="WinBar Dev"
+KEYCHAIN="$HOME/Library/Keychains/login.keychain-db"
 
 say() { printf '\033[1;34m==>\033[0m %s\n' "$*"; }
 die() { printf '\033[1;31mERROR:\033[0m %s\n' "$*" >&2; exit 1; }
 
 [ "$(uname -s)" = "Darwin" ] || die "WinBar runs on macOS only."
+
+DOCK_LEFT=0; RESIGN=1; UNINSTALL=0; RESTORE_DOCK=0
+for arg in "$@"; do
+  case "$arg" in
+    --dock-left) DOCK_LEFT=1 ;;
+    --no-resign) RESIGN=0 ;;
+    --uninstall) UNINSTALL=1 ;;
+    --restore-dock) RESTORE_DOCK=1 ;;
+    *) die "Unknown option: $arg" ;;
+  esac
+done
 
 restore_dock() {
   defaults write com.apple.dock orientation -string bottom
@@ -28,7 +47,46 @@ restore_dock() {
   say "Dock back at the bottom; bottom-right Hot Corner restored to the macOS default."
 }
 
-if [ "${1:-}" = "--uninstall" ]; then
+reset_grants() {
+  tccutil reset Accessibility "$BUNDLE_ID" >/dev/null 2>&1 || true
+  tccutil reset ScreenCapture "$BUNDLE_ID" >/dev/null 2>&1 || true
+  tccutil reset AppleEvents "$BUNDLE_ID" >/dev/null 2>&1 || true
+}
+
+has_identity() { security find-identity -v -p codesigning 2>/dev/null | grep -q "\"$IDENTITY\""; }
+
+# Creates the self-signed code-signing certificate once (private key stays in the login keychain).
+make_identity() {
+  local tmp pass
+  tmp="$(mktemp -d)"; chmod 700 "$tmp"
+  cat > "$tmp/openssl.cnf" <<EOF
+[req]
+distinguished_name = dn
+x509_extensions = ext
+prompt = no
+[dn]
+CN = $IDENTITY
+[ext]
+keyUsage = critical, digitalSignature
+extendedKeyUsage = critical, codeSigning
+basicConstraints = critical, CA:false
+EOF
+  openssl req -x509 -newkey rsa:2048 -nodes -days 3650 -config "$tmp/openssl.cnf" \
+    -keyout "$tmp/key.pem" -out "$tmp/cert.pem" >/dev/null 2>&1
+  chmod 600 "$tmp/key.pem"
+  pass="$(openssl rand -hex 16)"
+  openssl pkcs12 -export -inkey "$tmp/key.pem" -in "$tmp/cert.pem" -name "$IDENTITY" \
+    -out "$tmp/cert.p12" -passout "pass:$pass" -legacy 2>/dev/null \
+    || openssl pkcs12 -export -inkey "$tmp/key.pem" -in "$tmp/cert.pem" -name "$IDENTITY" \
+         -out "$tmp/cert.p12" -passout "pass:$pass"
+  security import "$tmp/cert.p12" -k "$KEYCHAIN" -P "$pass" -T /usr/bin/codesign -T /usr/bin/security >/dev/null
+  say "macOS may now ask for your login password to trust the local certificate (one time)."
+  security add-trusted-cert -r trustRoot -p codeSign -k "$KEYCHAIN" "$tmp/cert.pem" \
+    || say "Trust settings not changed; trying to sign anyway."
+  rm -rf "$tmp"
+}
+
+if [ "$UNINSTALL" = 1 ]; then
   say "Quitting ${APP_NAME}..."
   pkill -x "$APP_NAME" 2>/dev/null || true
   sleep 1
@@ -40,10 +98,11 @@ if [ "${1:-}" = "--uninstall" ]; then
          "$HOME/Library/Saved Application State/$BUNDLE_ID.savedState"
   defaults delete "$BUNDLE_ID" 2>/dev/null || true
   say "Revoking Accessibility and Screen Recording grants..."
-  tccutil reset Accessibility "$BUNDLE_ID" >/dev/null 2>&1 || true
-  tccutil reset ScreenCapture "$BUNDLE_ID" >/dev/null 2>&1 || true
-  tccutil reset AppleEvents "$BUNDLE_ID" >/dev/null 2>&1 || true
-  if [ "${2:-}" = "--restore-dock" ]; then restore_dock; fi
+  reset_grants
+  say "Removing the local signing certificate..."
+  security delete-identity -c "$IDENTITY" "$KEYCHAIN" 2>/dev/null \
+    || security delete-certificate -c "$IDENTITY" "$KEYCHAIN" 2>/dev/null || true
+  if [ "$RESTORE_DOCK" = 1 ]; then restore_dock; fi
   say "$APP_NAME removed. If it still shows under System Settings > General > Login Items, toggle it off there."
   exit 0
 fi
@@ -68,12 +127,28 @@ if curl -fsSL "$url.sha256" -o "$tmp/app.zip.sha256" 2>/dev/null; then
 fi
 
 ditto -x -k "$tmp/app.zip" "$tmp/out"
-[ -d "$tmp/out/$APP_NAME.app" ] || die "Unexpected archive layout."
-# The app is signed ad-hoc (no Apple Developer certificate), so Gatekeeper would block it.
-# Clearing the quarantine flag is the same as the manual "Open Anyway" in System Settings.
-xattr -dr com.apple.quarantine "$tmp/out/$APP_NAME.app" 2>/dev/null || true
+NEW="$tmp/out/$APP_NAME.app"
+[ -d "$NEW" ] || die "Unexpected archive layout."
+# Ad-hoc signed app: Gatekeeper would block it. Clearing the quarantine flag equals "Open Anyway".
+xattr -dr com.apple.quarantine "$NEW" 2>/dev/null || true
 
-if [ "${1:-}" = "--dock-left" ]; then
+# Was the installed copy signed with the stable local identity? If not, its grants cannot survive.
+old_stable=0
+if [ -d "$DEST" ] && codesign -dv "$DEST" 2>&1 | grep -q "Authority=$IDENTITY"; then old_stable=1; fi
+
+signed=0
+if [ "$RESIGN" = 1 ]; then
+  if ! has_identity; then make_identity || say "Could not create the local certificate."; fi
+  if has_identity && codesign --force --deep --sign "$IDENTITY" --timestamp=none "$NEW" 2>/dev/null \
+     && codesign --verify --deep "$NEW" 2>/dev/null; then
+    signed=1
+    say "Signed with the local \"$IDENTITY\" identity (permissions survive future updates)."
+  else
+    say "Could not sign with \"$IDENTITY\"; keeping the ad-hoc signature (permissions must be re-granted after each update)."
+  fi
+fi
+
+if [ "$DOCK_LEFT" = 1 ]; then
   defaults write com.apple.dock orientation -string left
   defaults write com.apple.dock autohide -bool true
   defaults write com.apple.dock wvous-br-corner -int 1
@@ -83,11 +158,28 @@ if [ "${1:-}" = "--dock-left" ]; then
 fi
 
 pkill -x "$APP_NAME" 2>/dev/null || true
+upgrade=0; [ -d "$DEST" ] && upgrade=1
 rm -rf "$DEST"
-cp -R "$tmp/out/$APP_NAME.app" "$DEST"
+cp -R "$NEW" "$DEST"
+
+# On an upgrade whose signature changed, the old grants are stale: the switches look on but do nothing.
+# Clear them so macOS prompts cleanly and the welcome window asks again.
+regrant=0
+if [ "$upgrade" = 1 ] && { [ "$old_stable" = 0 ] || [ "$signed" = 0 ]; }; then
+  reset_grants; regrant=1
+fi
+
 open -n "$DEST"
 say "Installed $DEST"
-cat <<'EOF'
+if [ "$regrant" = 1 ]; then
+  cat <<'EOF'
+The app signature changed with this update, so macOS dropped the old permissions: in the welcome window
+grant Accessibility again (and Screen Recording for thumbnails), then click "Relaunch". From now on
+updates keep the permissions.
+EOF
+else
+  cat <<'EOF'
 Next: in the welcome window grant Accessibility (required) and Screen Recording (window thumbnails),
 then click "Relaunch". Right-click the bar for settings. Uninstall: install.sh --uninstall
 EOF
+fi

@@ -3,7 +3,14 @@ import ApplicationServices
 
 /// Estado das permissões que a barra precisa.
 enum PermissionGate {
-    static var accessibility: Bool { AXIsProcessTrusted() }
+    /// Depois de uma atualização a entrada do TCC pode continuar "ligada" mas inválida (a assinatura do app
+    /// mudou): AXIsProcessTrusted responde sim e as chamadas reais falham com apiDisabled. Sonda de verdade.
+    static var accessibility: Bool {
+        guard AXIsProcessTrusted() else { return false }
+        var raw: AnyObject?
+        let err = AXUIElementCopyAttributeValue(AXUIElementCreateSystemWide(), kAXFocusedApplicationAttribute as CFString, &raw)
+        return err != .apiDisabled
+    }
     static var screenRecording: Bool { CGPreflightScreenCaptureAccess() }
 
     /// Mostra o prompt do sistema para Accessibility (uma vez por sessão).

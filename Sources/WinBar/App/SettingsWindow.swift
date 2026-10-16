@@ -140,6 +140,10 @@ struct OnboardingView: View {
                 detail: "Permite listar, ativar, minimizar e fechar as janelas dos outros apps.") {
                 PermissionGate.requestAccessibility(); PermissionGate.openAccessibilitySettings()
             }
+            if !axOK {
+                Text("O WinBar já aparece ligado na lista e mesmo assim consta como pendente? Acontece depois de atualizar o app: desligue e ligue o interruptor dele de novo (ou remova-o da lista e conceda outra vez).")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
             row("2. Gravação de Tela (recomendada)", ok: srOK,
                 detail: "Permite mostrar miniaturas ao vivo das janelas. Sem ela, só o título aparece.") {
                 PermissionGate.requestScreenRecording(); PermissionGate.openScreenRecordingSettings()

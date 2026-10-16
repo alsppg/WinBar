@@ -35,11 +35,14 @@ curl -fsSL https://raw.githubusercontent.com/alsppg/WinBar/main/install.sh | bas
 
 Baixa a [versão mais recente](https://github.com/alsppg/WinBar/releases/latest), confere o SHA‑256, instala em `/Applications/WinBar.app` e abre. O `--dock-left` move o Dock do macOS para a esquerda com auto‑ocultar e desliga o Canto Ativo inferior direito, para a borda de baixo ficar com o WinBar (omita para não mexer no Dock).
 
+O instalador também cria um certificado local auto‑assinado ("WinBar Dev") no seu Keychain de login e assina o app com ele. O macOS amarra as permissões de Acessibilidade e Gravação de Tela à assinatura do app, e a assinatura ad‑hoc de uma release muda a cada build — sem isso, toda atualização perderia as permissões em silêncio. Nada sai do seu Mac; o macOS pode pedir sua senha de login uma vez. `--no-resign` pula essa etapa.
+
 ### Opção 2 — download manual
 
 1. Baixe `WinBar-vX.Y.Z.zip` na [versão mais recente](https://github.com/alsppg/WinBar/releases/latest) e descompacte.
 2. Mova `WinBar.app` para `/Applications`.
 3. O WinBar é assinado ad‑hoc (sem certificado pago da Apple), então o Gatekeeper avisa uma vez. Rode `xattr -dr com.apple.quarantine /Applications/WinBar.app` no Terminal, ou abra o app e depois libere em *Ajustes do Sistema › Privacidade e Segurança › Abrir Mesmo Assim*.
+4. Depois de cada atualização manual, desligue e ligue o WinBar de novo em *Ajustes do Sistema › Privacidade e Segurança › Acessibilidade* (e Gravação de Tela): as permissões ficam presas à assinatura, que muda a cada release. O instalador de uma linha evita isso.
 
 ### Opção 3 — compilar do código‑fonte
 
@@ -63,6 +66,8 @@ O WinBar pede duas permissões na janela de boas‑vindas:
 
 Conceda em *Ajustes do Sistema › Privacidade e Segurança* e clique em **Relançar**. O app não tem ícone no Dock: vive na barra e num ícone pequeno na barra de menus (Ajustes / Relançar / Sair).
 
+**Atualizou e a barra não mostra nenhuma janela?** A permissão de Acessibilidade fica presa à assinatura do app; desligue e ligue o WinBar em *Acessibilidade* (a janela de boas‑vindas reabre avisando isso). Instalar pela linha única deixa a assinatura estável e isso para de acontecer.
+
 ## Como usar
 
 | Ação | Resultado |
@@ -85,7 +90,7 @@ Dica: `scripts/fast-animations.sh` encurta as animações de minimizar/restaurar
 
 ## Desinstalar
 
-Uma linha remove tudo que o WinBar criou — app, ajustes, apps fixados, logs, caches e as permissões de Acessibilidade / Gravação de Tela:
+Uma linha remove tudo que o WinBar criou — app, ajustes, apps fixados, logs, caches, o certificado local "WinBar Dev" e as permissões de Acessibilidade / Gravação de Tela:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/alsppg/WinBar/main/install.sh | bash -s -- --uninstall
@@ -106,7 +111,7 @@ defaults delete io.github.alsppg.winbar
 tccutil reset Accessibility io.github.alsppg.winbar && tccutil reset ScreenCapture io.github.alsppg.winbar
 ```
 
-Se o WinBar ainda aparecer em *Ajustes do Sistema › Geral › Itens de Início*, desligue ali. Compilou do fonte? Rode também `./scripts/make-cert.sh --remove` para apagar a identidade de assinatura local "WinBar Dev" e apague a pasta clonada.
+Se o WinBar ainda aparecer em *Ajustes do Sistema › Geral › Itens de Início*, desligue ali. Compilou do fonte? Apague também a pasta clonada (`./scripts/make-cert.sh --remove` apaga a identidade "WinBar Dev" se você não usar a linha única).
 
 ## Limitações conhecidas
 

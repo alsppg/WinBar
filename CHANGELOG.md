@@ -10,6 +10,14 @@ All notable changes to WinBar are documented here. The format follows [Keep a Ch
 - Tray icons: volume, battery, Wi-Fi
 - Homebrew cask
 
+## [0.1.2] — 2026-10-15
+
+### Fixed
+- After an update the bar showed no windows: macOS ties the Accessibility grant to the app signature and the ad-hoc signature changes with every build, while `AXIsProcessTrusted()` kept saying yes. The app now probes the API for real and reopens the welcome window with the fix (toggle WinBar off and on).
+
+### Added
+- `install.sh` signs the downloaded app with a local self-signed "WinBar Dev" identity (created once in the login keychain) so permissions survive updates; when the signature changes it clears the stale grants so macOS prompts cleanly. `--no-resign` opts out; `--uninstall` also removes the identity.
+
 ## [0.1.1] — 2026-10-15
 
 ### Changed
