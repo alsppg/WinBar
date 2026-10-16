@@ -52,6 +52,7 @@ struct Settings: Codable, Equatable {
     var showLabels = false
     var barSize: BarSize = .normal
     var keepWindowsAboveBar = true
+    var quitOnLastWindowClose = true      // fechar a última janela pela barra encerra o app (como no Windows)
     var clickActiveMinimizes = false
     var onlyCurrentSpace = false
     var excludeNoWindowApps = true
@@ -71,7 +72,7 @@ struct Settings: Codable, Equatable {
 
     // Decodificação tolerante: chaves novas assumem o padrão, chaves antigas são migradas.
     private enum K: String, CodingKey {
-        case autoHide, locked, useAccentColor, transparency, combineButtons, showLabels, barSize, smallButtons, keepWindowsAboveBar, showSpaces, migrationLevel,
+        case autoHide, locked, useAccentColor, transparency, combineButtons, showLabels, barSize, smallButtons, keepWindowsAboveBar, quitOnLastWindowClose, showSpaces, migrationLevel,
              clickActiveMinimizes, onlyCurrentSpace, excludeNoWindowApps, showClock, showDesktopButton, previewDelayMs,
              startHotkey, launchAtLogin, allScreens, excludedBundleIDs, manualOrder, onboardingDone
     }
@@ -89,6 +90,7 @@ struct Settings: Codable, Equatable {
         else if try c.decodeIfPresent(Bool.self, forKey: .smallButtons) == true { barSize = .small }
         else { barSize = d.barSize }
         keepWindowsAboveBar = try c.decodeIfPresent(Bool.self, forKey: .keepWindowsAboveBar) ?? d.keepWindowsAboveBar
+        quitOnLastWindowClose = try c.decodeIfPresent(Bool.self, forKey: .quitOnLastWindowClose) ?? d.quitOnLastWindowClose
         clickActiveMinimizes = try c.decodeIfPresent(Bool.self, forKey: .clickActiveMinimizes) ?? d.clickActiveMinimizes
         onlyCurrentSpace = try c.decodeIfPresent(Bool.self, forKey: .onlyCurrentSpace) ?? d.onlyCurrentSpace
         excludeNoWindowApps = try c.decodeIfPresent(Bool.self, forKey: .excludeNoWindowApps) ?? d.excludeNoWindowApps
@@ -115,6 +117,7 @@ struct Settings: Codable, Equatable {
         try c.encode(showLabels, forKey: .showLabels)
         try c.encode(barSize, forKey: .barSize)
         try c.encode(keepWindowsAboveBar, forKey: .keepWindowsAboveBar)
+        try c.encode(quitOnLastWindowClose, forKey: .quitOnLastWindowClose)
         try c.encode(clickActiveMinimizes, forKey: .clickActiveMinimizes)
         try c.encode(onlyCurrentSpace, forKey: .onlyCurrentSpace)
         try c.encode(excludeNoWindowApps, forKey: .excludeNoWindowApps)

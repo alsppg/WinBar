@@ -16,6 +16,7 @@
 - **Apps fixados** colados ao botão Iniciar (clique direito em qualquer app → *Adicionar à Barra de Tarefas*; ou arraste um `.app` do Finder para a barra). Arraste para reordenar.
 - **Miniaturas das janelas** ao passar o mouse (ScreenCaptureKit) — clique ativa, ✕ ou botão do meio fecha.
 - **Clique traz para a frente**, sempre (nunca minimiza). Clique direito → nova janela, fixar/remover, mostrar no Finder, ocultar, forçar encerrar, fechar janela(s), sair.
+- **Fechar a última janela encerra o app**, como no Windows: pelo ✕ da miniatura, botão do meio ou *Fechar janela* o programa sai de verdade, em vez de continuar aberto no Dock (exceto o Finder; espera o diálogo "Salvar alterações?"; pode ser desligado).
 - **Menu Iniciar** com busca, lista A–Z de todos os apps instalados (mesma cobertura do app *Apps* do macOS, Finder incluído), atalhos para Documentos/Downloads e ações de energia (suspender, bloquear, encerrar sessão, reiniciar, desligar). Atalho: Control + Esc.
 - **Seletor de Mesas** à esquerda do relógio: atual/total, clique para escolher, rolagem para alternar, clique direito abre o Mission Control.
 - **Relógio** em duas linhas com calendário do mês; botão **Mostrar área de trabalho** no canto inferior direito (ou clique em qualquer área vazia da barra).
@@ -69,7 +70,7 @@ Conceda em *Ajustes do Sistema › Privacidade e Segurança* e clique em **Relan
 | Clique num app | traz a(s) janela(s) para a frente; abre se estiver fechado |
 | Passar o mouse num app | miniaturas das janelas (clique = ativar, ✕ / botão do meio = fechar) |
 | Clique direito num app | Nova janela · Adicionar/Remover da Barra de Tarefas · Mostrar no Finder · Ocultar · Forçar encerrar · Fechar janela(s) · Sair |
-| Clique direito na barra | Mostrar área de trabalho · Mission Control · Auto‑ocultar · Manter janelas acima da barra · Estilo dos botões · Altura da barra · Ajustes |
+| Clique direito na barra | Mostrar área de trabalho · Mission Control · Auto‑ocultar · Manter janelas acima da barra · Encerrar o app ao fechar a última janela · Estilo dos botões · Altura da barra · Ajustes |
 | Clique em área vazia | mostrar área de trabalho / restaurar |
 | Botão Iniciar ou Control + Esc | lista de apps com busca; Enter abre o primeiro resultado |
 | Botão de Mesas | escolher uma Mesa; rolagem alterna; clique direito = Mission Control |

@@ -4,17 +4,22 @@ All notable changes to WinBar are documented here. The format follows [Keep a Ch
 
 ## [Unreleased]
 
-### Added
-- `install.sh --uninstall` now removes everything (app, settings, pins, logs, caches, Accessibility/Screen Recording grants); `--restore-dock` undoes `--dock-left`. `scripts/make-cert.sh --remove` deletes the local signing identity.
-
-### Fixed
-- One-line installer failed on macOS with `REPO?: unbound variable`: bash 3.2 swallowed the Unicode ellipsis after `$REPO` into the variable name. `install.sh` is now pure ASCII.
-
 ### Roadmap
 - English user interface (currently pt-BR)
 - Badges and "wants attention" flash on app buttons
 - Tray icons: volume, battery, Wi-Fi
 - Homebrew cask
+
+## [0.1.1] — 2026-10-15
+
+### Changed
+- **Closing the last window from the bar now quits the app** (Windows behaviour): thumbnail ✕, middle-click, *Close window* and *Close all windows* end the program instead of leaving it running in the Dock. Waits up to 10 s for "Save changes?" dialogs, only acts on a confirmed zero-window count (busy apps are left alone), never quits Finder. New toggle *Quit app on last window close* (bar menu and Settings), on by default.
+
+### Added
+- `install.sh --uninstall` now removes everything (app, settings, pins, logs, caches, Accessibility/Screen Recording grants); `--restore-dock` undoes `--dock-left`. `scripts/make-cert.sh --remove` deletes the local signing identity.
+
+### Fixed
+- One-line installer failed on macOS with `REPO?: unbound variable`: bash 3.2 swallowed the Unicode ellipsis after `$REPO` into the variable name. `install.sh` is now pure ASCII.
 
 ## [0.1.0] — 2026-10-15
 

@@ -16,6 +16,7 @@
 - **Pinned apps** glued to the Start button (right-click any app → *Add to taskbar*; drag a `.app` from Finder onto the bar). Drag to reorder.
 - **Window thumbnails** on hover (ScreenCaptureKit) — click to activate, ✕ or middle-click to close.
 - **Click brings to front**, always (never minimizes). Right-click → new window, pin/unpin, show in Finder, hide, force quit, close window(s), quit.
+- **Closing the last window quits the app**, like Windows: from the thumbnail ✕, a middle-click or *Close window* the program really exits instead of lingering in the Dock (Finder excepted; waits for "Save changes?" dialogs; can be turned off).
 - **Start menu** with search, A–Z list of every installed app (same coverage as the macOS *Apps* app, Finder included), Documents/Downloads shortcuts and power actions (sleep, lock, log out, restart, shut down). Shortcut: Control + Esc.
 - **Desktops (Spaces) switcher** left of the clock: current/total, click to pick, scroll to cycle, right-click for Mission Control.
 - **Clock** in two lines with a month calendar fly-out; **Show desktop** button in the bottom-right corner (also: click any empty area of the bar).
@@ -69,7 +70,7 @@ Grant them in *System Settings › Privacy & Security*, then click **Relaunch**.
 | Click an app | brings its window(s) to the front; launches it if closed |
 | Hover an app | thumbnails of its windows (click = activate, ✕ / middle-click = close) |
 | Right-click an app | New window · Add/Remove from taskbar · Show in Finder · Hide · Force quit · Close window(s) · Quit |
-| Right-click the bar | Show desktop · Mission Control · Auto-hide · Keep windows above the bar · Button style · Bar height · Settings |
+| Right-click the bar | Show desktop · Mission Control · Auto-hide · Keep windows above the bar · Quit app on last window close · Button style · Bar height · Settings |
 | Click an empty area | show desktop / restore |
 | Start button or Control + Esc | app list with search; Enter opens the first match |
 | Desktops button | pick a Space; scroll to cycle; right-click = Mission Control |

@@ -73,6 +73,31 @@ enum AXController {
         return AXUIElementPerformAction(btn as! AXUIElement, kAXPressAction as CFString) == .success
     }
 
+    /// Fecha janelas e, se o app ficar sem nenhuma, encerra-o — semântica do Windows (fechar a última
+    /// janela = sair do programa), para o app não continuar "aberto" no Dock. O Finder nunca é encerrado.
+    static func close(_ windows: [WindowInfo], of app: NSRunningApplication?) {
+        windows.forEach { close($0) }
+        guard SettingsStore.shared.settings.quitOnLastWindowClose, let app = app,
+              app.bundleIdentifier != "com.apple.finder" else { return }
+        quitWhenNoWindows(app, remainingChecks: 20)
+    }
+
+    /// Reavalia a cada 0,5 s por até 10 s: dá tempo de o app perguntar "Salvar alterações?" (a folha mantém a
+    /// janela viva; se o usuário cancelar, o app continua). Só encerra com contagem ZERO confirmada — um app
+    /// ocupado que não responde ao Accessibility não é encerrado.
+    private static func quitWhenNoWindows(_ app: NSRunningApplication, remainingChecks: Int) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            guard !app.isTerminated, remainingChecks > 0 else { return }
+            if WindowService.standardWindowCount(for: app) == 0 { quit(app) }
+            else { quitWhenNoWindows(app, remainingChecks: remainingChecks - 1) }
+        }
+    }
+
+    /// "Sair": pedido normal de encerrar (⌘Q); o app ainda pode perguntar sobre alterações não salvas.
+    static func quit(_ app: NSRunningApplication) {
+        if !app.terminate() { Log.warn("pedido de sair recusado por um app") }
+    }
+
     /// Envia ⌘N ao app (nova janela) — comportamento do Shift+clique / clique do meio do Win10.
     static func newWindow(app: NSRunningApplication) {
         bringToFront(app, allWindows: false)

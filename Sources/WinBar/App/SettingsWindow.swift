@@ -56,6 +56,7 @@ struct SettingsView: View {
             }
             Section("Cliques") {
                 Toggle("Clicar no app ativo minimiza a janela", isOn: $store.settings.clickActiveMinimizes)
+                Toggle("Encerrar o app ao fechar sua última janela pela barra (como no Windows)", isOn: $store.settings.quitOnLastWindowClose)
                 Stepper("Atraso da miniatura ao passar o mouse: \(store.settings.previewDelayMs) ms",
                         value: $store.settings.previewDelayMs, in: 100...2000, step: 100)
             }

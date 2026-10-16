@@ -158,7 +158,7 @@ final class BarController: NSObject, AppButtonDelegate, BarViewDelegate {
         let f = ThumbnailFlyout(entry: e)
         f.onActivate = { [weak self] w in self?.closeFlyout(); AXController.activate(w, app: e.app) }
         f.onCloseWindow = { [weak self] w in
-            AXController.close(w)
+            AXController.close([w], of: e.app)
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { AppTracker.shared.scheduleRefresh() }
             if e.windows.count <= 1 { self?.closeFlyout() }
         }
@@ -223,7 +223,7 @@ final class BarController: NSObject, AppButtonDelegate, BarViewDelegate {
 
     func appButton(_ b: AppButton, middleClickedWith event: NSEvent) {
         let e = b.model.entry
-        if let w = b.model.window { AXController.close(w); return }
+        if let w = b.model.window { AXController.close([w], of: e.app); return }
         if let app = e.app { AXController.newWindow(app: app) } else { launch(e) }
     }
 
@@ -253,14 +253,14 @@ final class BarController: NSObject, AppButtonDelegate, BarViewDelegate {
             // Ordem pedida: Forçar encerrar, depois Fechar janela(s) e Sair
             add("Forçar encerrar") { [weak self] in self?.confirmForceQuit(app, name: e.name) }
             if let w = b.model.window {
-                add("Fechar janela") { AXController.close(w) }
+                add("Fechar janela") { AXController.close([w], of: app) }
             } else if e.windows.count == 1 {
-                add("Fechar janela") { AXController.close(e.windows[0]) }
+                add("Fechar janela") { AXController.close([e.windows[0]], of: app) }
             } else if e.windows.count > 1 {
-                add("Fechar todas as janelas (\(e.windows.count))") { e.windows.forEach { AXController.close($0) } }
+                add("Fechar todas as janelas (\(e.windows.count))") { AXController.close(e.windows, of: app) }
             }
             if e.bundleID == "com.apple.finder" { add("Relançar o Finder") { app.terminate() } }
-            else { add("Sair") { app.terminate() } }
+            else { add("Sair") { AXController.quit(app) } }
         }
         let p = b.convert(b.bounds, to: nil)
         menu.popUp(positioning: nil, at: NSPoint(x: p.minX, y: p.maxY), in: view)
@@ -338,6 +338,7 @@ final class BarController: NSObject, AppButtonDelegate, BarViewDelegate {
         menu.addItem(.separator())
         add("Ocultar automaticamente a barra", checked: settings.autoHide) { SettingsStore.shared.settings.autoHide.toggle() }
         add("Manter janelas acima da barra", checked: settings.keepWindowsAboveBar) { SettingsStore.shared.settings.keepWindowsAboveBar.toggle() }
+        add("Encerrar o app ao fechar a última janela", checked: settings.quitOnLastWindowClose) { SettingsStore.shared.settings.quitOnLastWindowClose.toggle() }
         add("Ajustar janelas à barra agora") { WindowHerder.shared.herdAll(expandFullHeight: true) }
         menu.addItem(.separator())
         // Estilo dos botões (3 opções, como "Combinar botões da barra de tarefas" do Win10)
