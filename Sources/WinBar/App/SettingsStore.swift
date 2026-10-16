@@ -51,6 +51,8 @@ struct Settings: Codable, Equatable {
     var showLabels = false
     var barSize: BarSize = .normal
     var keepWindowsAboveBar = true
+    /// Clique no botão da janela ativa minimiza (Windows); qualquer outra vem para a frente.
+    var activeClickMinimizes = true
     /// Semântica do Windows: app sem janela não fica rodando. Fechar a última janela pela barra encerra o app
     /// na hora; a última janela fechada por qualquer outro meio encerra o app após uma carência (AppTracker).
     var quitOnLastWindowClose = true
@@ -72,7 +74,7 @@ struct Settings: Codable, Equatable {
 
     // Decodificação tolerante: chave ausente (ajuste novo ou removido) assume o padrão.
     private enum K: String, CodingKey {
-        case autoHide, useAccentColor, transparency, combineButtons, showLabels, barSize, keepWindowsAboveBar,
+        case autoHide, useAccentColor, transparency, combineButtons, showLabels, barSize, keepWindowsAboveBar, activeClickMinimizes,
              quitOnLastWindowClose, keepRunningBundleIDs, excludeNoWindowApps, showClock, showDesktopButton, showSpaces,
              previewDelayMs, startHotkey, launchAtLogin, allScreens, excludedBundleIDs, manualOrder, onboardingDone
     }
@@ -87,6 +89,7 @@ struct Settings: Codable, Equatable {
         showLabels = try c.decodeIfPresent(Bool.self, forKey: .showLabels) ?? d.showLabels
         barSize = try c.decodeIfPresent(BarSize.self, forKey: .barSize) ?? d.barSize
         keepWindowsAboveBar = try c.decodeIfPresent(Bool.self, forKey: .keepWindowsAboveBar) ?? d.keepWindowsAboveBar
+        activeClickMinimizes = try c.decodeIfPresent(Bool.self, forKey: .activeClickMinimizes) ?? d.activeClickMinimizes
         quitOnLastWindowClose = try c.decodeIfPresent(Bool.self, forKey: .quitOnLastWindowClose) ?? d.quitOnLastWindowClose
         keepRunningBundleIDs = try c.decodeIfPresent([String].self, forKey: .keepRunningBundleIDs) ?? d.keepRunningBundleIDs
         excludeNoWindowApps = try c.decodeIfPresent(Bool.self, forKey: .excludeNoWindowApps) ?? d.excludeNoWindowApps
@@ -111,6 +114,7 @@ struct Settings: Codable, Equatable {
         try c.encode(showLabels, forKey: .showLabels)
         try c.encode(barSize, forKey: .barSize)
         try c.encode(keepWindowsAboveBar, forKey: .keepWindowsAboveBar)
+        try c.encode(activeClickMinimizes, forKey: .activeClickMinimizes)
         try c.encode(quitOnLastWindowClose, forKey: .quitOnLastWindowClose)
         try c.encode(keepRunningBundleIDs, forKey: .keepRunningBundleIDs)
         try c.encode(excludeNoWindowApps, forKey: .excludeNoWindowApps)

@@ -193,24 +193,36 @@ final class BarController: NSObject, AppButtonDelegate, BarViewDelegate {
         if mods.contains(.shift) { if let app = e.app { AXController.newWindow(app: app) } else { launch(e) }; return }
         if mods.contains(.option) { if let app = e.app { _ = app.isHidden ? app.unhide() : app.hide() }; return }
 
-        if let w = m.window {   // botão de janela (modo "clássico"): traz essa janela para a frente
-            AXController.activate(w, app: e.app)
-            return
-        }
+        if let w = m.window { clickWindow(w, app: e.app); return }   // botão de janela (modo "clássico")
         guard let app = e.app else { launch(e); return }
         closeFlyout()
         switch e.windows.count {
         case 0:
             // App rodando sem janela (ex.: Spotify tocando): reabrir pelo LaunchServices manda o "reopen", como
             // o clique no Dock, e o app mostra a janela de novo.
+            Log.info("clique: app sem janela, reabrindo")
             if e.url != nil { launch(e) } else { AXController.activate(app: app) }
-        case 1: AXController.activate(e.windows[0], app: app)
+        case 1: clickWindow(e.windows[0], app: app)
         default:
             // Clique sempre traz o app inteiro para a frente, com a última janela usada por cima.
             // A lista de miniaturas fica só no "passar o mouse".
+            Log.info("clique: app com \(e.windows.count) janelas trazido para a frente")
             AXController.activate(app: app, preferring: e.windows)
         }
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { AppTracker.shared.scheduleRefresh() }
+    }
+
+    /// Clique no botão de uma janela: como no Windows, a janela ativa minimiza; qualquer outra vem para a frente.
+    /// "Ativa" é verificada ao vivo (app na frente + janela focada), não pelo estado em cache do botão.
+    private func clickWindow(_ w: WindowInfo, app: NSRunningApplication?) {
+        if settings.activeClickMinimizes, let app = app, !app.isHidden, !w.isMinimized,
+           NSWorkspace.shared.frontmostApplication?.processIdentifier == app.processIdentifier, WindowService.isFocused(w) {
+            Log.info("clique: janela ativa minimizada")
+            AXController.minimize(w)
+        } else {
+            Log.info("clique: janela trazida para a frente")
+            AXController.activate(w, app: app)
+        }
     }
 
     private func launch(_ e: AppEntry) {
@@ -393,9 +405,11 @@ final class BarController: NSObject, AppButtonDelegate, BarViewDelegate {
         guard index >= 0, index < view.buttons.count else { return }
         let b = view.buttons[index]
         let m = b.model
-        if let w = m.window { AXController.activate(w, app: m.entry.app); return }
+        if let w = m.window { clickWindow(w, app: m.entry.app); return }
         if let app = m.entry.app {
-            if let w = m.entry.windows.first { AXController.activate(w, app: app) } else { AXController.activate(app: app) }
+            if m.entry.windows.count == 1 { clickWindow(m.entry.windows[0], app: app) }
+            else if m.entry.windows.isEmpty { if m.entry.url != nil { launch(m.entry) } else { AXController.activate(app: app) } }
+            else { AXController.activate(app: app, preferring: m.entry.windows) }
         } else { launch(m.entry) }
     }
 }

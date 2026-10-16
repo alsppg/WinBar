@@ -21,7 +21,7 @@
 - **Desktops (Spaces) switcher** left of the clock: current/total, click to pick, scroll to cycle, right-click for Mission Control.
 - **Clock** in two lines with a month calendar fly-out; **Show desktop** button in the bottom-right corner (also: click any empty area of the bar) — uses the native Mission Control *Show Desktop* shortcut, so every window leaves at once and comes back on the next click.
 - **Windows stay above the bar**: maximized or moved windows are resized to end at the bar, like the Windows work area.
-- Bar heights 30/40/48/56 pt, dark or accent-colour variant, transparency on/off. Control+Option+1…9 activates button N.
+- Bar heights 30/40/48/56 pt, dark or accent-colour variant, transparency on/off. Control+Option+1…9 activates button N; Control+Option+D shows the desktop.
 - **Starts with macOS** and comes back by itself if it ever crashes: a per-user LaunchAgent, on by default (*Settings › Inicialização* to turn off; listed under *System Settings › General › Login Items › Allow in the Background*). *Quit* is respected until the next login.
 
 ## Install
@@ -73,7 +73,7 @@ Grant them in *System Settings › Privacy & Security*, then click **Relaunch**.
 
 | Action | Result |
 | --- | --- |
-| Click an app | brings its window(s) to the front; launches it if closed |
+| Click an app | brings its window(s) to the front (the active window's button minimizes it, like Windows); launches it if closed |
 | Hover an app | thumbnails of its windows (click = activate, ✕ / middle-click = close) |
 | Right-click an app | New window · Add/Remove from taskbar · Show in Finder · Hide · Keep running without windows · Force quit · Close window(s) · Quit |
 | Right-click the bar | Show desktop · Mission Control · Auto-hide · Keep windows above the bar · Quit windowless apps · Button style · Bar height · Settings |

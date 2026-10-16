@@ -10,6 +10,15 @@ All notable changes to WinBar are documented here. The format follows [Keep a Ch
 - Tray icons: volume, battery, Wi-Fi
 - Homebrew cask
 
+## [0.1.6] — 2026-10-16
+
+### Fixed
+- *Show desktop* did nothing: the synthesized F11 carried the "fn" modifier bit stored in the system shortcut, which changes how the key is interpreted. Only ⇧⌃⌥⌘ are sent now.
+
+### Added
+- Clicking the button of the **active** window minimizes it (Windows behaviour), checked live (app frontmost + window focused), never from cached state; any other window comes to the front. Toggle in Settings › Cliques.
+- Control+Option+D shows the desktop (like Win+D). Click paths and the show-desktop path write one log line each (no personal data) to make reports verifiable.
+
 ## [0.1.5] — 2026-10-16
 
 ### Fixed

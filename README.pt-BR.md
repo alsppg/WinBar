@@ -21,7 +21,7 @@
 - **Seletor de Mesas** à esquerda do relógio: atual/total, clique para escolher, rolagem para alternar, clique direito abre o Mission Control.
 - **Relógio** em duas linhas com calendário do mês; botão **Mostrar área de trabalho** no canto inferior direito (ou clique em qualquer área vazia da barra) — usa o atalho nativo *Mostrar Mesa* do Mission Control: todas as janelas saem de uma vez e voltam no próximo clique.
 - **Janelas sempre acima da barra**: janelas maximizadas ou movidas são redimensionadas para terminar na barra, como a área de trabalho do Windows.
-- Alturas 30/40/48/56 pt, variante escura ou na cor de destaque, transparência ligada/desligada. Control+Option+1…9 ativa o botão N.
+- Alturas 30/40/48/56 pt, variante escura ou na cor de destaque, transparência ligada/desligada. Control+Option+1…9 ativa o botão N; Control+Option+D mostra a área de trabalho.
 - **Inicia com o macOS** e volta sozinho se algum dia cair: um LaunchAgent do usuário, ligado por padrão (*Ajustes › Inicialização* para desligar; aparece em *Ajustes do Sistema › Geral › Itens de Início › Permitir em segundo plano*). *Sair* é respeitado até o próximo login.
 
 ## Instalação
@@ -73,7 +73,7 @@ Conceda em *Ajustes do Sistema › Privacidade e Segurança* e clique em **Relan
 
 | Ação | Resultado |
 | --- | --- |
-| Clique num app | traz a(s) janela(s) para a frente; abre se estiver fechado |
+| Clique num app | traz a(s) janela(s) para a frente (o botão da janela ativa a minimiza, como no Windows); abre se estiver fechado |
 | Passar o mouse num app | miniaturas das janelas (clique = ativar, ✕ / botão do meio = fechar) |
 | Clique direito num app | Nova janela · Adicionar/Remover da Barra de Tarefas · Mostrar no Finder · Ocultar · Manter em execução sem janelas · Forçar encerrar · Fechar janela(s) · Sair |
 | Clique direito na barra | Mostrar área de trabalho · Mission Control · Auto‑ocultar · Manter janelas acima da barra · Encerrar apps que ficam sem janela · Estilo dos botões · Altura da barra · Ajustes |

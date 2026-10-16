@@ -83,6 +83,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if let hk = SettingsStore.shared.s.startHotkey {
             HotKeyCenter.shared.register(hk) { [weak self] in self?.mainBar?.toggleStart() }
         }
+        // Control+Option+D → mostrar área de trabalho (como Win+D)
+        HotKeyCenter.shared.register(HotKeySpec(keyCode: 2, control: true, option: true, shift: false, command: false)) {
+            DesktopToggle.shared.toggle()
+        }
         // Control+Option+1…9 → botão N (keycodes das teclas 1..9 no layout ANSI)
         let keyCodes: [UInt32] = [18, 19, 20, 21, 23, 22, 26, 28, 25]
         for (i, kc) in keyCodes.enumerated() {

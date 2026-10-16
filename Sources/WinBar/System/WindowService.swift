@@ -60,6 +60,15 @@ enum WindowService {
         return out
     }
 
+    /// Verdadeiro se esta é a janela focada do seu app (estado ao vivo, não o do botão).
+    static func isFocused(_ w: WindowInfo) -> Bool {
+        let appEl = AXUIElementCreateApplication(w.pid)
+        AXUIElementSetMessagingTimeout(appEl, 0.3)
+        var raw: AnyObject?
+        guard AXUIElementCopyAttributeValue(appEl, kAXFocusedWindowAttribute as CFString, &raw) == .success, let f = raw else { return false }
+        return CFEqual(f as! AXUIElement, w.element)
+    }
+
     /// Verdadeiro se a janela focada do app está em tela cheia.
     static func focusedWindowIsFullScreen(pid: pid_t) -> Bool {
         let appEl = AXUIElementCreateApplication(pid)

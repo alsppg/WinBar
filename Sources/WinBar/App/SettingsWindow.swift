@@ -54,6 +54,7 @@ struct SettingsView: View {
                     .disabled(store.settings.combineButtons == .never)
             }
             Section("Cliques") {
+                Toggle("Clicar no botão da janela ativa minimiza a janela (como no Windows)", isOn: $store.settings.activeClickMinimizes)
                 Stepper("Atraso da miniatura ao passar o mouse: \(store.settings.previewDelayMs) ms",
                         value: $store.settings.previewDelayMs, in: 100...2000, step: 100)
             }
@@ -90,7 +91,7 @@ struct SettingsView: View {
                     set: { on in store.settings.launchAtLogin = on; LoginItem.set(enabled: on) }))
             }
             Section("Atalhos") {
-                Text("Iniciar: Control + Esc   ·   Ativar botão N: Control + Option + 1…9")
+                Text("Iniciar: Control + Esc   ·   Botão N: Control + Option + 1…9   ·   Mostrar área de trabalho: Control + Option + D")
                     .font(.callout).foregroundStyle(.secondary)
             }
             Section("Permissões") {

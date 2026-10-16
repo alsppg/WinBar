@@ -13,7 +13,11 @@ final class DesktopToggle {
     private(set) var showingDesktop = false      // só no caminho de reserva
 
     func toggle() {
-        if let key = SystemShortcuts.showDesktop { SystemShortcuts.press(key); return }
+        if let key = SystemShortcuts.showDesktop {
+            Log.info("mostrar área de trabalho: atalho do sistema keyCode=\(key.keyCode) flags=\(key.flags.rawValue)")
+            SystemShortcuts.press(key); return
+        }
+        Log.info("mostrar área de trabalho: atalho do sistema desativado; ocultando apps")
         ignoreActivationsUntil = Date().addingTimeInterval(1.5)   // ocultar/restaurar dispara ativações do sistema
         if showingDesktop { restore() } else { showDesktop() }
     }
