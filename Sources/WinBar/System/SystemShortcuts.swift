@@ -6,9 +6,9 @@ import Carbon.HIToolbox
 enum SystemShortcuts {
     struct Key { let keyCode: CGKeyCode; let flags: CGEventFlags }
 
-    /// "Mostrar Mesa" (id 36). Padrão do macOS: F11. nil = o usuário desativou o atalho.
+    /// "Mostrar Mesa" (id 36). Padrão do macOS: F11 com o bit fn. nil = o usuário desativou o atalho.
     static var showDesktop: Key? {
-        key(id: 36, default: Key(keyCode: CGKeyCode(kVK_F11), flags: []))
+        key(id: 36, default: Key(keyCode: CGKeyCode(kVK_F11), flags: .maskSecondaryFn))
     }
 
     /// "Alternar para a Mesa N" (ids 118…127). Vem desativado de fábrica.
@@ -18,11 +18,10 @@ enum SystemShortcuts {
     }
 
     /// Entrada ausente no plist = ajuste de fábrica (`default`); presente = respeita enabled + tecla configurada.
-    /// `parameters` = [caractere, keyCode, modificadores]; os bits dos modificadores coincidem com CGEventFlags.
-    /// Só ⇧⌃⌥⌘ entram no evento: o bit "fn" (8388608) que o macOS grava para teclas F é informativo, e num
-    /// evento sintético ele pode mudar a interpretação da tecla; um F11 "puro" é o que o teclado manda.
-    private static let realModifiers: UInt64 = CGEventFlags.maskShift.rawValue | CGEventFlags.maskControl.rawValue
-        | CGEventFlags.maskAlternate.rawValue | CGEventFlags.maskCommand.rawValue
+    /// `parameters` = [caractere, keyCode, modificadores]; os bits coincidem com CGEventFlags. O bit fn (8388608)
+    /// faz parte da identidade das teclas F: testado ao vivo, F11 sintético só dispara "Mostrar Mesa" com ele.
+    private static let usableFlags: UInt64 = CGEventFlags.maskShift.rawValue | CGEventFlags.maskControl.rawValue
+        | CGEventFlags.maskAlternate.rawValue | CGEventFlags.maskCommand.rawValue | CGEventFlags.maskSecondaryFn.rawValue
     private static func key(id: Int, default fallback: Key?) -> Key? {
         guard let hot = CFPreferencesCopyAppValue("AppleSymbolicHotKeys" as CFString, "com.apple.symbolichotkeys" as CFString) as? [String: Any],
               let entry = hot["\(id)"] as? [String: Any] else { return fallback }
@@ -30,23 +29,8 @@ enum SystemShortcuts {
         guard enabled else { return nil }
         guard let value = entry["value"] as? [String: Any], let p = value["parameters"] as? [Int], p.count >= 3,
               p[1] >= 0, p[1] != 65535 else { return fallback }
-        return Key(keyCode: CGKeyCode(p[1]), flags: CGEventFlags(rawValue: UInt64(p[2]) & realModifiers))
+        return Key(keyCode: CGKeyCode(p[1]), flags: CGEventFlags(rawValue: UInt64(p[2]) & usableFlags))
     }
 
-    /// Variante de injeção (diagnóstico): `defaults write io.github.alsppg.winbar showDesktopVariant -int N`.
-    /// 0 = tap HID, flags como configurado · 1 = HID + fn · 2 = tap de sessão · 3 = sessão + fn ·
-    /// 4 = HID + fn com fonte de sessão combinada · 5 = tap de sessão anotado + fn.
-    static func press(_ k: Key) {
-        let v = UserDefaults.standard.integer(forKey: "showDesktopVariant")
-        let fn: CGEventFlags = .maskSecondaryFn
-        switch v {
-        case 1: AXController.postKey(keyCode: k.keyCode, flags: k.flags.union(fn))
-        case 2: AXController.postKey(keyCode: k.keyCode, flags: k.flags, tap: .cgSessionEventTap)
-        case 3: AXController.postKey(keyCode: k.keyCode, flags: k.flags.union(fn), tap: .cgSessionEventTap)
-        case 4: AXController.postKey(keyCode: k.keyCode, flags: k.flags.union(fn), source: .combinedSessionState)
-        case 5: AXController.postKey(keyCode: k.keyCode, flags: k.flags.union(fn), tap: .cgAnnotatedSessionEventTap)
-        default: AXController.postKey(keyCode: k.keyCode, flags: k.flags)
-        }
-        Log.info("tecla do sistema postada: variante=\(v) keyCode=\(k.keyCode)")
-    }
+    static func press(_ k: Key) { AXController.postKey(keyCode: k.keyCode, flags: k.flags) }
 }

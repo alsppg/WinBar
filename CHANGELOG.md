@@ -10,6 +10,12 @@ All notable changes to WinBar are documented here. The format follows [Keep a Ch
 - Tray icons: volume, battery, Wi-Fi
 - Homebrew cask
 
+## [0.1.9] — 2026-10-16
+
+### Fixed
+- **Show desktop works.** Verified live on macOS: a synthetic F11 only triggers Mission Control's *Show Desktop* when it carries the fn bit, which 0.1.6 had stripped. The key is read from the system shortcut (fn bit kept) and posted after the user's modifiers are released. Control+Option+D and the bottom-right button use the same path.
+- Clicking the active window's button minimizes it; verified live (log explains each decision).
+
 ## [0.1.7] — 2026-10-16
 
 ### Fixed
@@ -22,7 +28,7 @@ All notable changes to WinBar are documented here. The format follows [Keep a Ch
 
 ### Fixed
 - `install.sh` reset the Accessibility / Screen Recording grants on **every** update even though the signature was stable: the check used `codesign -dv`, which does not print the `Authority=` line (`-dvv` does), and `grep -q` under `pipefail` made the test fail anyway (SIGPIPE). Output is now captured and matched without a pipe. Permissions really survive updates.
-- *Show desktop* did nothing: the synthesized F11 carried the "fn" modifier bit stored in the system shortcut, which changes how the key is interpreted. Only ⇧⌃⌥⌘ are sent now.
+- *Show desktop* did nothing: the synthesized F11 carried the "fn" modifier bit stored in the system shortcut, which changes how the key is interpreted. Only ⇧⌃⌥⌘ are sent now. (Wrong diagnosis — reverted in 0.1.9: the fn bit is required.)
 
 ### Added
 - Clicking the button of the **active** window minimizes it (Windows behaviour), checked live (app frontmost + window focused), never from cached state; any other window comes to the front. Toggle in Settings › Cliques.
