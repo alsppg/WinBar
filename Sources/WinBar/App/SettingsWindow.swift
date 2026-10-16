@@ -54,12 +54,16 @@ struct SettingsView: View {
                     .disabled(store.settings.combineButtons == .never)
             }
             Section("Cliques") {
-                Toggle("Clicar no app ativo minimiza a janela", isOn: $store.settings.clickActiveMinimizes)
-                Toggle("Encerrar o app ao fechar sua última janela pela barra (como no Windows)", isOn: $store.settings.quitOnLastWindowClose)
                 Stepper("Atraso da miniatura ao passar o mouse: \(store.settings.previewDelayMs) ms",
                         value: $store.settings.previewDelayMs, in: 100...2000, step: 100)
             }
             Section("Apps") {
+                Toggle("Encerrar o app quando sua última janela fechar (como no Windows; Finder nunca)", isOn: $store.settings.quitOnLastWindowClose)
+                Text("Exceções — podem ficar abertos sem janela (clique direito no app → \"Manter em execução sem janelas\"):")
+                    .font(.caption).foregroundStyle(.secondary)
+                ForEach(store.settings.keepRunningBundleIDs, id: \.self) { bid in
+                    HStack { Text(bid); Spacer(); Button("Remover") { store.settings.keepRunningBundleIDs.removeAll { $0 == bid } } }
+                }
                 Toggle("Ocultar apps em execução sem janelas (exceto fixados)", isOn: $store.settings.excludeNoWindowApps)
                 HStack {
                     TextField("Bundle ID a excluir (ex.: com.apple.Music)", text: $newExcluded)

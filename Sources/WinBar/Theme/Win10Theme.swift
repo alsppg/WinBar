@@ -10,7 +10,6 @@ enum W10 {
         static let surface       = NSColor(hex: 0x1F1F1F)
         static let surfaceRaised = NSColor(hex: 0x2B2B2B)
         static let border        = NSColor(hex: 0x3A3A3A)
-        static let borderInput   = NSColor(hex: 0x8A8A8A)
         static let text          = NSColor(hex: 0xFFFFFF)
         static let textMuted     = NSColor(hex: 0xB3B3B3)
         static let accent        = NSColor(hex: 0x0072C6)
@@ -19,9 +18,6 @@ enum W10 {
         static let indicator     = NSColor(hex: 0x4CC2FF)
         static let indicatorOnAccent = NSColor(hex: 0xFFFFFF)
         static let attention     = NSColor(hex: 0xF7630C)
-        static let badge         = NSColor(hex: 0xE81123)
-        static let onBadge       = NSColor(hex: 0xFFFFFF)
-        static let danger        = NSColor(hex: 0xFF4343)
         static let success       = NSColor(hex: 0x06B025)
         static let warning       = NSColor(hex: 0xFFB900)
     }
@@ -35,7 +31,6 @@ enum W10 {
         static let pressed      = NSColor.white.withAlphaComponent(0.15)
         static let active       = NSColor.white.withAlphaComponent(0.12)
         static let activeHover  = NSColor.white.withAlphaComponent(0.18)
-        static let attentionFill = Color.attention.withAlphaComponent(0.55)
         static let stackEdge    = NSColor.white.withAlphaComponent(0.35)
         static let showDesktopHover = NSColor.white.withAlphaComponent(0.25)
         static let topEdge      = NSColor.white.withAlphaComponent(0.06)
@@ -44,22 +39,15 @@ enum W10 {
     // MARK: Medidas (pt)
     enum Size {
         static let barHeight: CGFloat = 40
-        static let barHeightSmall: CGFloat = 30
         static let hiddenSliver: CGFloat = 2
         static let startWidth: CGFloat = 48
         static let buttonWidth: CGFloat = 60
-        static let buttonWidthSmall: CGFloat = 44
-        static let buttonLabelMin: CGFloat = 90
-        static let buttonLabelMax: CGFloat = 160
         static let buttonMinWhenFull: CGFloat = 36
         static let icon: CGFloat = 24
-        static let iconSmall: CGFloat = 16
         static let indicatorHeight: CGFloat = 2
         static let indicatorInsetRunning: CGFloat = 2
         static let stackSegmentWidth: CGFloat = 4
         static let stackSegmentGap: CGFloat = 2
-        static let traySlot: CGFloat = 24
-        static let trayIcon: CGFloat = 16
         static let trayPadding: CGFloat = 8
         static let clockMinWidth: CGFloat = 64
         static let showDesktopWidth: CGFloat = 20
@@ -74,7 +62,6 @@ enum W10 {
         static let startRailWidth: CGFloat = 48
         static let calendarWidth: CGFloat = 320
         static let calendarCell: CGFloat = 40
-        static let badgeMin: CGFloat = 16
         static let labelGap: CGFloat = 8
     }
 
@@ -90,7 +77,6 @@ enum W10 {
     // MARK: Tipografia (SF do sistema no papel do Segoe UI)
     enum Font {
         static let xs = NSFont.systemFont(ofSize: 11)
-        static let xsBold = NSFont.boldSystemFont(ofSize: 11)
         static let sm = NSFont.systemFont(ofSize: 12)
         static let base = NSFont.systemFont(ofSize: 13)
         static let md = NSFont.systemFont(ofSize: 14)
@@ -104,10 +90,6 @@ enum W10 {
         static let flyout: TimeInterval = 0.15
         static let autohide: TimeInterval = 0.15
         static let autohideDelay: TimeInterval = 0.40
-        static let previewDelay: TimeInterval = 0.40
-        static let flashPeriod: TimeInterval = 0.60
-        static let flashCount = 3
-        static let launchPulse: TimeInterval = 1.2
         static let timing = CAMediaTimingFunction(controlPoints: 0.1, 0.9, 0.2, 1.0)
     }
 

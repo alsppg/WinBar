@@ -16,10 +16,10 @@
 - **Pinned apps** glued to the Start button (right-click any app → *Add to taskbar*; drag a `.app` from Finder onto the bar). Drag to reorder.
 - **Window thumbnails** on hover (ScreenCaptureKit) — click to activate, ✕ or middle-click to close.
 - **Click brings to front**, always (never minimizes). Right-click → new window, pin/unpin, show in Finder, hide, force quit, close window(s), quit.
-- **Closing the last window quits the app**, like Windows: from the thumbnail ✕, a middle-click or *Close window* the program really exits instead of lingering in the Dock (Finder excepted; waits for "Save changes?" dialogs; can be turned off).
+- **No app lingers without a window**, like Windows: closing an app's last window — from the bar (✕, middle-click, *Close window*) or any other way (red button, ⌘W) — quits it, after a 3 s grace so it can open another window or ask "Save changes?". Finder never. Apps you mark *Keep running without windows* (right-click; e.g. Spotify playing) stay on the bar as an icon and reopen their window on click. Can be turned off.
 - **Start menu** with search, A–Z list of every installed app (same coverage as the macOS *Apps* app, Finder included), Documents/Downloads shortcuts and power actions (sleep, lock, log out, restart, shut down). Shortcut: Control + Esc.
 - **Desktops (Spaces) switcher** left of the clock: current/total, click to pick, scroll to cycle, right-click for Mission Control.
-- **Clock** in two lines with a month calendar fly-out; **Show desktop** button in the bottom-right corner (also: click any empty area of the bar).
+- **Clock** in two lines with a month calendar fly-out; **Show desktop** button in the bottom-right corner (also: click any empty area of the bar) — uses the native Mission Control *Show Desktop* shortcut, so every window leaves at once and comes back on the next click.
 - **Windows stay above the bar**: maximized or moved windows are resized to end at the bar, like the Windows work area.
 - Bar heights 30/40/48/56 pt, dark or accent-colour variant, transparency on/off. Control+Option+1…9 activates button N.
 - **Starts with macOS** and comes back by itself if it ever crashes: a per-user LaunchAgent, on by default (*Settings › Inicialização* to turn off; listed under *System Settings › General › Login Items › Allow in the Background*). *Quit* is respected until the next login.
@@ -75,8 +75,8 @@ Grant them in *System Settings › Privacy & Security*, then click **Relaunch**.
 | --- | --- |
 | Click an app | brings its window(s) to the front; launches it if closed |
 | Hover an app | thumbnails of its windows (click = activate, ✕ / middle-click = close) |
-| Right-click an app | New window · Add/Remove from taskbar · Show in Finder · Hide · Force quit · Close window(s) · Quit |
-| Right-click the bar | Show desktop · Mission Control · Auto-hide · Keep windows above the bar · Quit app on last window close · Button style · Bar height · Settings |
+| Right-click an app | New window · Add/Remove from taskbar · Show in Finder · Hide · Keep running without windows · Force quit · Close window(s) · Quit |
+| Right-click the bar | Show desktop · Mission Control · Auto-hide · Keep windows above the bar · Quit windowless apps · Button style · Bar height · Settings |
 | Click an empty area | show desktop / restore |
 | Start button or Control + Esc | app list with search; Enter opens the first match |
 | Desktops button | pick a Space; scroll to cycle; right-click = Mission Control |
@@ -119,6 +119,7 @@ If WinBar still appears under *System Settings › General › Login Items*, tog
 
 - macOS does not let third-party apps reserve screen space; WinBar instead resizes windows that overlap it (can be turned off: *Keep windows above the bar*). Windows end 6 pt under the bar so their resize handle never shows on it.
 - Switching Spaces uses the system shortcuts: if *Switch to Desktop N* (Control+N) is enabled in *System Settings › Keyboard › Shortcuts › Mission Control* the jump is direct; otherwise WinBar steps with Control+←/→.
+- *Show desktop* relies on the system shortcut *Mission Control › Show Desktop* (default F11). If you disabled it, WinBar falls back to hiding every app.
 - The user interface is currently in Portuguese (pt-BR). English UI is on the [roadmap](CHANGELOG.md).
 
 ## Contributing

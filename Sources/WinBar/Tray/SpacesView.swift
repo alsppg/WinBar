@@ -41,22 +41,9 @@ final class SpacesService {
         }
     }
 
-    /// Verdadeiro se o atalho "Alternar para a Mesa N" (Ctrl+N) está ativado em Ajustes > Teclado > Atalhos.
-    private func directShortcutEnabled(_ n: Int) -> Bool {
-        guard n >= 1 && n <= 10,
-              let hot = CFPreferencesCopyAppValue("AppleSymbolicHotKeys" as CFString, "com.apple.symbolichotkeys" as CFString) as? [String: Any],
-              let entry = hot["\(117 + n)"] as? [String: Any] else { return false }
-        return (entry["enabled"] as? Bool) ?? ((entry["enabled"] as? Int) == 1)
-    }
-
     func switchTo(_ n: Int) {
         guard n >= 1, n <= count, n != current, !switching else { return }
-        let digits: [Int: Int] = [1: kVK_ANSI_1, 2: kVK_ANSI_2, 3: kVK_ANSI_3, 4: kVK_ANSI_4, 5: kVK_ANSI_5,
-                                  6: kVK_ANSI_6, 7: kVK_ANSI_7, 8: kVK_ANSI_8, 9: kVK_ANSI_9, 10: kVK_ANSI_0]
-        if directShortcutEnabled(n), let kc = digits[n] {
-            AXController.postKey(keyCode: CGKeyCode(kc), flags: .maskControl)
-            return
-        }
+        if let key = SystemShortcuts.switchToDesktop(n) { SystemShortcuts.press(key); return }
         // Sem atalho direto: anda uma Mesa por vez com Ctrl+←/→.
         let delta = n - current
         let key = CGKeyCode(delta > 0 ? kVK_RightArrow : kVK_LeftArrow)

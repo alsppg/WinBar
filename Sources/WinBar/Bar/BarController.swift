@@ -158,7 +158,7 @@ final class BarController: NSObject, AppButtonDelegate, BarViewDelegate {
         let f = ThumbnailFlyout(entry: e)
         f.onActivate = { [weak self] w in self?.closeFlyout(); AXController.activate(w, app: e.app) }
         f.onCloseWindow = { [weak self] w in
-            AXController.close([w], of: e.app)
+            AXController.close([w], of: e)
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { AppTracker.shared.scheduleRefresh() }
             if e.windows.count <= 1 { self?.closeFlyout() }
         }
@@ -194,18 +194,17 @@ final class BarController: NSObject, AppButtonDelegate, BarViewDelegate {
         if mods.contains(.option) { if let app = e.app { _ = app.isHidden ? app.unhide() : app.hide() }; return }
 
         if let w = m.window {   // botão de janela (modo "clássico"): traz essa janela para a frente
-            if m.isActive && !w.isMinimized && settings.clickActiveMinimizes { AXController.minimize(w) }
-            else { AXController.activate(w, app: e.app) }
+            AXController.activate(w, app: e.app)
             return
         }
         guard let app = e.app else { launch(e); return }
         closeFlyout()
         switch e.windows.count {
-        case 0: AXController.activate(app: app)
-        case 1:
-            let w = e.windows[0]
-            if e.isActive && !w.isMinimized && !e.isHidden && settings.clickActiveMinimizes { AXController.minimize(w) }
-            else { AXController.activate(w, app: app) }
+        case 0:
+            // App rodando sem janela (ex.: Spotify tocando): reabrir pelo LaunchServices manda o "reopen", como
+            // o clique no Dock, e o app mostra a janela de novo.
+            if e.url != nil { launch(e) } else { AXController.activate(app: app) }
+        case 1: AXController.activate(e.windows[0], app: app)
         default:
             // Clique sempre traz o app inteiro para a frente, com a última janela usada por cima.
             // A lista de miniaturas fica só no "passar o mouse".
@@ -223,7 +222,7 @@ final class BarController: NSObject, AppButtonDelegate, BarViewDelegate {
 
     func appButton(_ b: AppButton, middleClickedWith event: NSEvent) {
         let e = b.model.entry
-        if let w = b.model.window { AXController.close([w], of: e.app); return }
+        if let w = b.model.window { AXController.close([w], of: e); return }
         if let app = e.app { AXController.newWindow(app: app) } else { launch(e) }
     }
 
@@ -231,9 +230,9 @@ final class BarController: NSObject, AppButtonDelegate, BarViewDelegate {
         closeFlyout()
         let e = b.model.entry
         let menu = NSMenu()
-        func add(_ title: String, _ action: @escaping () -> Void) {
+        func add(_ title: String, checked: Bool = false, _ action: @escaping () -> Void) {
             let item = NSMenuItem(title: title, action: #selector(runMenuAction(_:)), keyEquivalent: "")
-            item.target = self; item.representedObject = MenuAction(action)
+            item.target = self; item.representedObject = MenuAction(action); item.state = checked ? .on : .off
             menu.addItem(item)
         }
         let header = NSMenuItem(title: e.name, action: nil, keyEquivalent: ""); header.isEnabled = false
@@ -249,15 +248,23 @@ final class BarController: NSObject, AppButtonDelegate, BarViewDelegate {
         if let app = e.app {
             menu.addItem(.separator())
             add(app.isHidden ? "Mostrar" : "Ocultar") { _ = app.isHidden ? app.unhide() : app.hide() }
+            if let bid = e.bundleID, bid != "com.apple.finder" {
+                let keep = settings.keepRunningBundleIDs.contains(bid)
+                add("Manter em execução sem janelas", checked: keep) {
+                    var s = SettingsStore.shared.settings
+                    if keep { s.keepRunningBundleIDs.removeAll { $0 == bid } } else { s.keepRunningBundleIDs.append(bid) }
+                    SettingsStore.shared.settings = s
+                }
+            }
             menu.addItem(.separator())
             // Ordem pedida: Forçar encerrar, depois Fechar janela(s) e Sair
             add("Forçar encerrar") { [weak self] in self?.confirmForceQuit(app, name: e.name) }
             if let w = b.model.window {
-                add("Fechar janela") { AXController.close([w], of: app) }
+                add("Fechar janela") { AXController.close([w], of: e) }
             } else if e.windows.count == 1 {
-                add("Fechar janela") { AXController.close([e.windows[0]], of: app) }
+                add("Fechar janela") { AXController.close([e.windows[0]], of: e) }
             } else if e.windows.count > 1 {
-                add("Fechar todas as janelas (\(e.windows.count))") { AXController.close(e.windows, of: app) }
+                add("Fechar todas as janelas (\(e.windows.count))") { AXController.close(e.windows, of: e) }
             }
             if e.bundleID == "com.apple.finder" { add("Relançar o Finder") { app.terminate() } }
             else { add("Sair") { AXController.quit(app) } }
@@ -338,7 +345,7 @@ final class BarController: NSObject, AppButtonDelegate, BarViewDelegate {
         menu.addItem(.separator())
         add("Ocultar automaticamente a barra", checked: settings.autoHide) { SettingsStore.shared.settings.autoHide.toggle() }
         add("Manter janelas acima da barra", checked: settings.keepWindowsAboveBar) { SettingsStore.shared.settings.keepWindowsAboveBar.toggle() }
-        add("Encerrar o app ao fechar a última janela", checked: settings.quitOnLastWindowClose) { SettingsStore.shared.settings.quitOnLastWindowClose.toggle() }
+        add("Encerrar apps que ficam sem janela", checked: settings.quitOnLastWindowClose) { SettingsStore.shared.settings.quitOnLastWindowClose.toggle() }
         add("Ajustar janelas à barra agora") { WindowHerder.shared.herdAll(expandFullHeight: true) }
         menu.addItem(.separator())
         // Estilo dos botões (3 opções, como "Combinar botões da barra de tarefas" do Win10)

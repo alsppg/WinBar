@@ -10,6 +10,13 @@ final class AppTracker {
     private var timer: Timer?
     private var pending = false
     private var iconCache = NSCache<NSString, NSImage>()
+    // Só na `queue`: última lista de janelas por app (usada quando o app não responde ao Accessibility) e
+    // controle do encerramento automático de quem ficou sem janela.
+    private var lastWindows: [pid_t: [WindowInfo]] = [:]
+    private var hadWindows = Set<pid_t>()
+    private var windowless: [pid_t: Date] = [:]
+    /// Carência entre a última janela sumir e o app ser encerrado: tempo de o app abrir outra (⌘N, "Salvar?").
+    private let quitGrace: TimeInterval = 3
 
     private init() {
         let nc = NSWorkspace.shared.notificationCenter
@@ -47,12 +54,34 @@ final class AppTracker {
             var seen = Set<String>()
 
             // Apps em execução (com janelas via AX)
+            let now = Date()
+            var alive = Set<pid_t>()
             for app in running {
                 let bid = app.bundleIdentifier
-                let id = bid ?? "pid:\(app.processIdentifier)"
-                let windows = app.isFinishedLaunching ? WindowService.windows(for: app) : []
-                if settings.excludeNoWindowApps && windows.isEmpty && app.isFinishedLaunching
-                    && !(bid.map { PinStore.shared.isPinned($0) } ?? false) { continue }
+                let pid = app.processIdentifier
+                let id = bid ?? "pid:\(pid)"
+                alive.insert(pid)
+                // App ocupado que não respondeu ao Accessibility mantém a última lista conhecida: nunca some da
+                // barra (nem é encerrado) por um timeout.
+                let fresh = app.isFinishedLaunching ? WindowService.windows(for: app) : []
+                let windows = fresh ?? self.lastWindows[pid] ?? []
+                if let fresh = fresh { self.lastWindows[pid] = fresh }
+                if let fresh = fresh, app.isFinishedLaunching {
+                    if !fresh.isEmpty { self.hadWindows.insert(pid); self.windowless[pid] = nil }
+                    else if self.hadWindows.contains(pid) {
+                        // Última janela fechada por qualquer meio (⌘W, botão vermelho…): como no Windows, o app
+                        // sem janela encerra — depois da carência, para dar tempo de ele abrir outra.
+                        let since = self.windowless[pid] ?? now
+                        self.windowless[pid] = since
+                        if now.timeIntervalSince(since) >= self.quitGrace && settings.mayQuit(bundleID: bid) {
+                            self.hadWindows.remove(pid)
+                            DispatchQueue.main.async { AXController.quit(app) }
+                        }
+                    }
+                }
+                // Sem janela só fica na barra quem é fixado ou está em "manter em execução" (ex.: Spotify tocando).
+                let keep = bid.map { PinStore.shared.isPinned($0) || settings.keepRunningBundleIDs.contains($0) } ?? false
+                if settings.excludeNoWindowApps && windows.isEmpty && app.isFinishedLaunching && !keep { continue }
                 seen.insert(id)
                 built.append(AppEntry(id: id, bundleID: bid, name: app.localizedName ?? id, url: app.bundleURL,
                                       app: app, isPinned: bid.map { PinStore.shared.isPinned($0) } ?? false,
@@ -65,6 +94,9 @@ final class AppTracker {
                 let name = p.name ?? FileManager.default.displayName(atPath: p.path).replacingOccurrences(of: ".app", with: "")
                 built.append(AppEntry(id: p.id, bundleID: p.id, name: name, url: url, app: nil, isPinned: true,
                                       windows: [], isActive: false, isHidden: false, isLaunching: false))
+            }
+            for pid in Array(self.lastWindows.keys) where !alive.contains(pid) {
+                self.lastWindows[pid] = nil; self.hadWindows.remove(pid); self.windowless[pid] = nil
             }
             let ordered = self.order(built, pins: pins, manual: settings.manualOrder)
             DispatchQueue.main.async {

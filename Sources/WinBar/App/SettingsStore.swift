@@ -45,21 +45,21 @@ struct HotKeySpec: Codable, Equatable {
 
 struct Settings: Codable, Equatable {
     var autoHide = false
-    var locked = true
     var useAccentColor = false
     var transparency = true
     var combineButtons: CombineMode = .always
     var showLabels = false
     var barSize: BarSize = .normal
     var keepWindowsAboveBar = true
-    var quitOnLastWindowClose = true      // fechar a última janela pela barra encerra o app (como no Windows)
-    var clickActiveMinimizes = false
-    var onlyCurrentSpace = false
+    /// Semântica do Windows: app sem janela não fica rodando. Fechar a última janela pela barra encerra o app
+    /// na hora; a última janela fechada por qualquer outro meio encerra o app após uma carência (AppTracker).
+    var quitOnLastWindowClose = true
+    /// Exceções do item acima (bundle IDs que podem ficar abertos sem janela, ex.: player de música).
+    var keepRunningBundleIDs: [String] = []
     var excludeNoWindowApps = true
     var showClock = true
     var showDesktopButton = true
     var showSpaces = true
-    var migrationLevel = 0
     var previewDelayMs = 400
     var startHotkey: HotKeySpec? = .ctrlEsc
     var launchAtLogin = true      // LaunchAgent do usuário; ver LoginItem
@@ -70,34 +70,29 @@ struct Settings: Codable, Equatable {
 
     init() {}
 
-    // Decodificação tolerante: chaves novas assumem o padrão, chaves antigas são migradas.
+    // Decodificação tolerante: chave ausente (ajuste novo ou removido) assume o padrão.
     private enum K: String, CodingKey {
-        case autoHide, locked, useAccentColor, transparency, combineButtons, showLabels, barSize, smallButtons, keepWindowsAboveBar, quitOnLastWindowClose, showSpaces, migrationLevel,
-             clickActiveMinimizes, onlyCurrentSpace, excludeNoWindowApps, showClock, showDesktopButton, previewDelayMs,
-             startHotkey, launchAtLogin, allScreens, excludedBundleIDs, manualOrder, onboardingDone
+        case autoHide, useAccentColor, transparency, combineButtons, showLabels, barSize, keepWindowsAboveBar,
+             quitOnLastWindowClose, keepRunningBundleIDs, excludeNoWindowApps, showClock, showDesktopButton, showSpaces,
+             previewDelayMs, startHotkey, launchAtLogin, allScreens, excludedBundleIDs, manualOrder, onboardingDone
     }
 
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: K.self)
         let d = Settings()
         autoHide = try c.decodeIfPresent(Bool.self, forKey: .autoHide) ?? d.autoHide
-        locked = try c.decodeIfPresent(Bool.self, forKey: .locked) ?? d.locked
         useAccentColor = try c.decodeIfPresent(Bool.self, forKey: .useAccentColor) ?? d.useAccentColor
         transparency = try c.decodeIfPresent(Bool.self, forKey: .transparency) ?? d.transparency
         combineButtons = try c.decodeIfPresent(CombineMode.self, forKey: .combineButtons) ?? d.combineButtons
         showLabels = try c.decodeIfPresent(Bool.self, forKey: .showLabels) ?? d.showLabels
-        if let s = try c.decodeIfPresent(BarSize.self, forKey: .barSize) { barSize = s }
-        else if try c.decodeIfPresent(Bool.self, forKey: .smallButtons) == true { barSize = .small }
-        else { barSize = d.barSize }
+        barSize = try c.decodeIfPresent(BarSize.self, forKey: .barSize) ?? d.barSize
         keepWindowsAboveBar = try c.decodeIfPresent(Bool.self, forKey: .keepWindowsAboveBar) ?? d.keepWindowsAboveBar
         quitOnLastWindowClose = try c.decodeIfPresent(Bool.self, forKey: .quitOnLastWindowClose) ?? d.quitOnLastWindowClose
-        clickActiveMinimizes = try c.decodeIfPresent(Bool.self, forKey: .clickActiveMinimizes) ?? d.clickActiveMinimizes
-        onlyCurrentSpace = try c.decodeIfPresent(Bool.self, forKey: .onlyCurrentSpace) ?? d.onlyCurrentSpace
+        keepRunningBundleIDs = try c.decodeIfPresent([String].self, forKey: .keepRunningBundleIDs) ?? d.keepRunningBundleIDs
         excludeNoWindowApps = try c.decodeIfPresent(Bool.self, forKey: .excludeNoWindowApps) ?? d.excludeNoWindowApps
         showClock = try c.decodeIfPresent(Bool.self, forKey: .showClock) ?? d.showClock
         showDesktopButton = try c.decodeIfPresent(Bool.self, forKey: .showDesktopButton) ?? d.showDesktopButton
         showSpaces = try c.decodeIfPresent(Bool.self, forKey: .showSpaces) ?? d.showSpaces
-        migrationLevel = try c.decodeIfPresent(Int.self, forKey: .migrationLevel) ?? 0
         previewDelayMs = try c.decodeIfPresent(Int.self, forKey: .previewDelayMs) ?? d.previewDelayMs
         startHotkey = try c.decodeIfPresent(HotKeySpec.self, forKey: .startHotkey) ?? d.startHotkey
         launchAtLogin = try c.decodeIfPresent(Bool.self, forKey: .launchAtLogin) ?? d.launchAtLogin
@@ -110,7 +105,6 @@ struct Settings: Codable, Equatable {
     func encode(to encoder: Encoder) throws {
         var c = encoder.container(keyedBy: K.self)
         try c.encode(autoHide, forKey: .autoHide)
-        try c.encode(locked, forKey: .locked)
         try c.encode(useAccentColor, forKey: .useAccentColor)
         try c.encode(transparency, forKey: .transparency)
         try c.encode(combineButtons, forKey: .combineButtons)
@@ -118,13 +112,11 @@ struct Settings: Codable, Equatable {
         try c.encode(barSize, forKey: .barSize)
         try c.encode(keepWindowsAboveBar, forKey: .keepWindowsAboveBar)
         try c.encode(quitOnLastWindowClose, forKey: .quitOnLastWindowClose)
-        try c.encode(clickActiveMinimizes, forKey: .clickActiveMinimizes)
-        try c.encode(onlyCurrentSpace, forKey: .onlyCurrentSpace)
+        try c.encode(keepRunningBundleIDs, forKey: .keepRunningBundleIDs)
         try c.encode(excludeNoWindowApps, forKey: .excludeNoWindowApps)
         try c.encode(showClock, forKey: .showClock)
         try c.encode(showDesktopButton, forKey: .showDesktopButton)
         try c.encode(showSpaces, forKey: .showSpaces)
-        try c.encode(migrationLevel, forKey: .migrationLevel)
         try c.encode(previewDelayMs, forKey: .previewDelayMs)
         try c.encodeIfPresent(startHotkey, forKey: .startHotkey)
         try c.encode(launchAtLogin, forKey: .launchAtLogin)
@@ -132,6 +124,12 @@ struct Settings: Codable, Equatable {
         try c.encode(excludedBundleIDs, forKey: .excludedBundleIDs)
         try c.encode(manualOrder, forKey: .manualOrder)
         try c.encode(onboardingDone, forKey: .onboardingDone)
+    }
+
+    /// Apps que o WinBar pode encerrar quando ficam sem janela.
+    func mayQuit(bundleID: String?) -> Bool {
+        guard quitOnLastWindowClose, bundleID != "com.apple.finder" else { return false }
+        return !(bundleID.map { keepRunningBundleIDs.contains($0) } ?? false)
     }
 }
 

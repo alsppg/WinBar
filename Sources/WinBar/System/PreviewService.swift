@@ -55,5 +55,4 @@ final class PreviewService {
         }
     }
 
-    func purge() { cache.removeAll() }
 }

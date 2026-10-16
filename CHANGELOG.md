@@ -10,6 +10,17 @@ All notable changes to WinBar are documented here. The format follows [Keep a Ch
 - Tray icons: volume, battery, Wi-Fi
 - Homebrew cask
 
+## [0.1.4] — 2026-10-16
+
+### Changed
+- **Show desktop** now triggers the native Mission Control *Show Desktop* shortcut (read from the system's keyboard shortcuts, default F11): every window leaves at once, the next click brings them back, and the bar stays put. The hide-all method remains only as a fallback when that shortcut is disabled.
+- **Windowless apps quit** (Windows behaviour), whichever way the last window was closed — from the bar or with the red button / ⌘W — after a 3 s grace. From the bar, closing all of an app's windows now quits it directly instead of pressing ✕ and polling. Finder is never quit; new per-app exception *Keep running without windows* (context menu + Settings list) keeps e.g. Spotify playing, visible on the bar as an icon, and clicking it reopens its window like the Dock does.
+- Apps that do not answer Accessibility in time (busy) keep their last known windows instead of vanishing from the bar.
+- Desktop switching uses the key actually configured for *Switch to Desktop N*, not a hard-coded Control+digit.
+
+### Removed
+- Dead settings (`locked`, `onlyCurrentSpace`, `clickActiveMinimizes`), the one-off migrations, legacy `smallButtons` key, unused theme tokens and helpers. Unknown or removed keys in an existing settings file are ignored.
+
 ## [0.1.3] — 2026-10-16
 
 ### Added

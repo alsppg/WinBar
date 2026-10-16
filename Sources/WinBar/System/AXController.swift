@@ -8,13 +8,10 @@ enum AXController {
     /// usuário na barra nos dá esse direito) e cedemos a ativação ao app; depois reforçamos com AXFrontmost.
     static func bringToFront(_ app: NSRunningApplication, allWindows: Bool) {
         app.unhide()
-        var done = false
-        if #available(macOS 14.0, *) {
-            NSApp.activate()
-            var opts: NSApplication.ActivationOptions = []
-            if allWindows { opts.insert(.activateAllWindows) }
-            done = app.activate(from: NSRunningApplication.current, options: opts)
-        }
+        NSApp.activate()
+        var opts: NSApplication.ActivationOptions = []
+        if allWindows { opts.insert(.activateAllWindows) }
+        var done = app.activate(from: NSRunningApplication.current, options: opts)
         if !done {
             var opts: NSApplication.ActivationOptions = [.activateIgnoringOtherApps]
             if allWindows { opts.insert(.activateAllWindows) }
@@ -61,10 +58,6 @@ enum AXController {
         AXUIElementSetAttributeValue(w.element, kAXMinimizedAttribute as CFString, kCFBooleanTrue)
     }
 
-    static func minimizeAll(_ windows: [WindowInfo]) {
-        windows.forEach { minimize($0) }
-    }
-
     @discardableResult
     static func close(_ w: WindowInfo) -> Bool {
         var raw: AnyObject?
@@ -73,24 +66,14 @@ enum AXController {
         return AXUIElementPerformAction(btn as! AXUIElement, kAXPressAction as CFString) == .success
     }
 
-    /// Fecha janelas e, se o app ficar sem nenhuma, encerra-o — semântica do Windows (fechar a última
-    /// janela = sair do programa), para o app não continuar "aberto" no Dock. O Finder nunca é encerrado.
-    static func close(_ windows: [WindowInfo], of app: NSRunningApplication?) {
-        windows.forEach { close($0) }
-        guard SettingsStore.shared.settings.quitOnLastWindowClose, let app = app,
-              app.bundleIdentifier != "com.apple.finder" else { return }
-        quitWhenNoWindows(app, remainingChecks: 20)
-    }
-
-    /// Reavalia a cada 0,5 s por até 10 s: dá tempo de o app perguntar "Salvar alterações?" (a folha mantém a
-    /// janela viva; se o usuário cancelar, o app continua). Só encerra com contagem ZERO confirmada — um app
-    /// ocupado que não responde ao Accessibility não é encerrado.
-    private static func quitWhenNoWindows(_ app: NSRunningApplication, remainingChecks: Int) {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            guard !app.isTerminated, remainingChecks > 0 else { return }
-            if WindowService.standardWindowCount(for: app) == 0 { quit(app) }
-            else { quitWhenNoWindows(app, remainingChecks: remainingChecks - 1) }
+    /// Fechar pela barra. Se forem todas as janelas do app, encerra o app (Windows: fechar a última janela
+    /// = sair do programa; o app ainda pode perguntar sobre alterações não salvas). Finder e apps da lista
+    /// "manter em execução" só têm as janelas fechadas.
+    static func close(_ windows: [WindowInfo], of entry: AppEntry) {
+        if let app = entry.app, SettingsStore.shared.s.mayQuit(bundleID: entry.bundleID), windows.count >= entry.windows.count {
+            quit(app); return
         }
+        windows.forEach { close($0) }
     }
 
     /// "Sair": pedido normal de encerrar (⌘Q); o app ainda pode perguntar sobre alterações não salvas.

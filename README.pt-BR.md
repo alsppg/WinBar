@@ -16,10 +16,10 @@
 - **Apps fixados** colados ao botão Iniciar (clique direito em qualquer app → *Adicionar à Barra de Tarefas*; ou arraste um `.app` do Finder para a barra). Arraste para reordenar.
 - **Miniaturas das janelas** ao passar o mouse (ScreenCaptureKit) — clique ativa, ✕ ou botão do meio fecha.
 - **Clique traz para a frente**, sempre (nunca minimiza). Clique direito → nova janela, fixar/remover, mostrar no Finder, ocultar, forçar encerrar, fechar janela(s), sair.
-- **Fechar a última janela encerra o app**, como no Windows: pelo ✕ da miniatura, botão do meio ou *Fechar janela* o programa sai de verdade, em vez de continuar aberto no Dock (exceto o Finder; espera o diálogo "Salvar alterações?"; pode ser desligado).
+- **Nenhum app fica rodando sem janela**, como no Windows: fechar a última janela de um app — pela barra (✕, botão do meio, *Fechar janela*) ou por qualquer outro meio (botão vermelho, ⌘W) — encerra o app, após 3 s de carência para ele abrir outra janela ou perguntar "Salvar alterações?". Finder nunca. Apps marcados como *Manter em execução sem janelas* (clique direito; ex.: Spotify tocando) continuam na barra como ícone e reabrem a janela ao clicar. Pode ser desligado.
 - **Menu Iniciar** com busca, lista A–Z de todos os apps instalados (mesma cobertura do app *Apps* do macOS, Finder incluído), atalhos para Documentos/Downloads e ações de energia (suspender, bloquear, encerrar sessão, reiniciar, desligar). Atalho: Control + Esc.
 - **Seletor de Mesas** à esquerda do relógio: atual/total, clique para escolher, rolagem para alternar, clique direito abre o Mission Control.
-- **Relógio** em duas linhas com calendário do mês; botão **Mostrar área de trabalho** no canto inferior direito (ou clique em qualquer área vazia da barra).
+- **Relógio** em duas linhas com calendário do mês; botão **Mostrar área de trabalho** no canto inferior direito (ou clique em qualquer área vazia da barra) — usa o atalho nativo *Mostrar Mesa* do Mission Control: todas as janelas saem de uma vez e voltam no próximo clique.
 - **Janelas sempre acima da barra**: janelas maximizadas ou movidas são redimensionadas para terminar na barra, como a área de trabalho do Windows.
 - Alturas 30/40/48/56 pt, variante escura ou na cor de destaque, transparência ligada/desligada. Control+Option+1…9 ativa o botão N.
 - **Inicia com o macOS** e volta sozinho se algum dia cair: um LaunchAgent do usuário, ligado por padrão (*Ajustes › Inicialização* para desligar; aparece em *Ajustes do Sistema › Geral › Itens de Início › Permitir em segundo plano*). *Sair* é respeitado até o próximo login.
@@ -75,8 +75,8 @@ Conceda em *Ajustes do Sistema › Privacidade e Segurança* e clique em **Relan
 | --- | --- |
 | Clique num app | traz a(s) janela(s) para a frente; abre se estiver fechado |
 | Passar o mouse num app | miniaturas das janelas (clique = ativar, ✕ / botão do meio = fechar) |
-| Clique direito num app | Nova janela · Adicionar/Remover da Barra de Tarefas · Mostrar no Finder · Ocultar · Forçar encerrar · Fechar janela(s) · Sair |
-| Clique direito na barra | Mostrar área de trabalho · Mission Control · Auto‑ocultar · Manter janelas acima da barra · Encerrar o app ao fechar a última janela · Estilo dos botões · Altura da barra · Ajustes |
+| Clique direito num app | Nova janela · Adicionar/Remover da Barra de Tarefas · Mostrar no Finder · Ocultar · Manter em execução sem janelas · Forçar encerrar · Fechar janela(s) · Sair |
+| Clique direito na barra | Mostrar área de trabalho · Mission Control · Auto‑ocultar · Manter janelas acima da barra · Encerrar apps que ficam sem janela · Estilo dos botões · Altura da barra · Ajustes |
 | Clique em área vazia | mostrar área de trabalho / restaurar |
 | Botão Iniciar ou Control + Esc | lista de apps com busca; Enter abre o primeiro resultado |
 | Botão de Mesas | escolher uma Mesa; rolagem alterna; clique direito = Mission Control |
@@ -119,6 +119,7 @@ Se o WinBar ainda aparecer em *Ajustes do Sistema › Geral › Itens de Início
 
 - O macOS não permite que apps de terceiros reservem área de tela; o WinBar redimensiona as janelas que o invadem (pode desligar: *Manter janelas acima da barra*). As janelas terminam 6 pt por baixo da barra para a alça de redimensionar nunca aparecer sobre ela.
 - A troca de Mesa usa os atalhos do sistema: se *Alternar para a Mesa N* (Control+N) estiver ativado em *Ajustes do Sistema › Teclado › Atalhos › Mission Control* o pulo é direto; senão o WinBar anda com Control+←/→.
+- *Mostrar área de trabalho* depende do atalho do sistema *Mission Control › Mostrar Mesa* (padrão F11). Se você o desativou, o WinBar recorre a ocultar todos os apps.
 - A interface está em português (pt‑BR). Interface em inglês está no [roadmap](CHANGELOG.md).
 
 ## Contribuindo

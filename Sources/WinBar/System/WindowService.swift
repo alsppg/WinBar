@@ -11,30 +11,18 @@ enum WindowService {
         return unsafeBitCast(sym, to: GetWindowFn.self)
     }()
 
-    /// Quantas janelas padrão/diálogo o app ainda tem (minimizadas incluídas, em qualquer Mesa).
-    /// nil = o app não respondeu ao Accessibility (ocupado); quem chama NÃO deve tratar como zero.
-    static func standardWindowCount(for app: NSRunningApplication) -> Int? {
-        let appEl = AXUIElementCreateApplication(app.processIdentifier)
-        AXUIElementSetMessagingTimeout(appEl, 1.0)
-        var raw: AnyObject?
-        let err = AXUIElementCopyAttributeValue(appEl, kAXWindowsAttribute as CFString, &raw)
-        if err == .noValue { return 0 }
-        guard err == .success else { return nil }
-        let wins = (raw as? [AXUIElement]) ?? []
-        return wins.filter { w in
-            let subrole = stringAttr(w, kAXSubroleAttribute) ?? ""
-            return subrole == kAXStandardWindowSubrole || subrole == kAXDialogSubrole
-        }.count
-    }
-
-    static func windows(for app: NSRunningApplication) -> [WindowInfo] {
+    /// Janelas padrão/diálogo do app (minimizadas e de outras Mesas incluídas).
+    /// nil = o app não respondeu ao Accessibility (ocupado): quem chama NÃO deve tratar como "sem janelas".
+    static func windows(for app: NSRunningApplication) -> [WindowInfo]? {
         let pid = app.processIdentifier
         let appEl = AXUIElementCreateApplication(pid)
-        AXUIElementSetMessagingTimeout(appEl, 0.3)
+        AXUIElementSetMessagingTimeout(appEl, 0.5)
 
         var raw: AnyObject?
-        guard AXUIElementCopyAttributeValue(appEl, kAXWindowsAttribute as CFString, &raw) == .success,
-              let axWindows = raw as? [AXUIElement], !axWindows.isEmpty else { return [] }
+        let err = AXUIElementCopyAttributeValue(appEl, kAXWindowsAttribute as CFString, &raw)
+        if err == .noValue { return [] }
+        guard err == .success else { return nil }
+        let axWindows = (raw as? [AXUIElement]) ?? []
 
         var focusedRaw: AnyObject?
         AXUIElementCopyAttributeValue(appEl, kAXFocusedWindowAttribute as CFString, &focusedRaw)

@@ -19,8 +19,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         Log.info("WinBar iniciou" + (LoginItem.launchedByLaunchd ? " (pelo launchd)" : ""))
         _ = SettingsStore.shared
         _ = PinStore.shared
-        migrate()
         LoginItem.ensure(enabled: SettingsStore.shared.s.launchAtLogin)
+        LoginItem.removeLegacyRegistration()
         _ = AppTracker.shared
         StartIndex.shared.refreshIfStale()
 
@@ -37,29 +37,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         lastBarSize = SettingsStore.shared.s.barSize
         updateHerder()
-    }
-
-    /// Ajustes de comportamento pedidos depois da 1ª instalação; roda uma vez por nível.
-    private func migrate() {
-        var s = SettingsStore.shared.settings
-        if s.migrationLevel < 1 {
-            s.clickActiveMinimizes = false
-            s.excludeNoWindowApps = true
-            s.migrationLevel = 1
-            SettingsStore.shared.settings = s
-            PinStore.shared.unpin(bundleID: "com.apple.mail")
-            PinStore.shared.unpin(bundleID: "com.apple.systempreferences")
-            Log.info("migração 1 aplicada")
-        }
-        if s.migrationLevel < 2 {
-            // Iniciar com o sistema passa a ser padrão (LaunchAgent); o registro antigo via SMAppService sai
-            // para não abrir duas instâncias no login.
-            s.launchAtLogin = true
-            s.migrationLevel = 2
-            SettingsStore.shared.settings = s
-            LoginItem.removeLegacyRegistration()
-            Log.info("migração 2 aplicada")
-        }
     }
 
     private var lastBarSize: BarSize = .normal
