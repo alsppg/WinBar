@@ -18,10 +18,12 @@ enum SystemShortcuts {
     }
 
     /// Entrada ausente no plist = ajuste de fábrica (`default`); presente = respeita enabled + tecla configurada.
-    /// `parameters` = [caractere, keyCode, modificadores]; os bits coincidem com CGEventFlags. O bit fn (8388608)
-    /// faz parte da identidade das teclas F: testado ao vivo, F11 sintético só dispara "Mostrar Mesa" com ele.
+    /// `parameters` = [caractere, keyCode, modificadores]; os bits coincidem com CGEventFlags.
     private static let usableFlags: UInt64 = CGEventFlags.maskShift.rawValue | CGEventFlags.maskControl.rawValue
-        | CGEventFlags.maskAlternate.rawValue | CGEventFlags.maskCommand.rawValue | CGEventFlags.maskSecondaryFn.rawValue
+        | CGEventFlags.maskAlternate.rawValue | CGEventFlags.maskCommand.rawValue
+    /// Teclas F1…F20: num evento sintético o bit fn faz parte da identidade da tecla — testado ao vivo, F11 só
+    /// dispara "Mostrar Mesa" com ele, mesmo quando o plist guarda modificadores 0.
+    private static let functionKeys: Set<Int> = [122, 120, 99, 118, 96, 97, 98, 100, 101, 109, 103, 111, 105, 107, 113, 106, 64, 79, 80, 90]
     private static func key(id: Int, default fallback: Key?) -> Key? {
         guard let hot = CFPreferencesCopyAppValue("AppleSymbolicHotKeys" as CFString, "com.apple.symbolichotkeys" as CFString) as? [String: Any],
               let entry = hot["\(id)"] as? [String: Any] else { return fallback }
@@ -29,7 +31,9 @@ enum SystemShortcuts {
         guard enabled else { return nil }
         guard let value = entry["value"] as? [String: Any], let p = value["parameters"] as? [Int], p.count >= 3,
               p[1] >= 0, p[1] != 65535 else { return fallback }
-        return Key(keyCode: CGKeyCode(p[1]), flags: CGEventFlags(rawValue: UInt64(p[2]) & usableFlags))
+        var flags = CGEventFlags(rawValue: UInt64(p[2]) & usableFlags)
+        if functionKeys.contains(p[1]) { flags.insert(.maskSecondaryFn) }
+        return Key(keyCode: CGKeyCode(p[1]), flags: flags)
     }
 
     static func press(_ k: Key) { AXController.postKey(keyCode: k.keyCode, flags: k.flags) }

@@ -10,6 +10,11 @@ All notable changes to WinBar are documented here. The format follows [Keep a Ch
 - Tray icons: volume, battery, Wi-Fi
 - Homebrew cask
 
+## [0.1.10] — 2026-10-16
+
+### Fixed
+- Show desktop on Macs whose shortcut entry stores modifiers 0: function keys (F1–F20) now always carry the fn bit in the synthetic event, whatever the plist says (verified live: F11 without it does nothing).
+
 ## [0.1.9] — 2026-10-16
 
 ### Fixed
