@@ -88,7 +88,12 @@ PLIST
   launchctl bootstrap "$DOMAIN" "$AGENT_PLIST" 2>/dev/null
 }
 
-has_identity() { security find-identity -v -p codesigning 2>/dev/null | grep -q "\"$IDENTITY\""; }
+# No pipes into grep -q here: with pipefail, grep -q closing the pipe early makes the producer fail (SIGPIPE)
+# and the whole test comes out false.
+has_identity() {
+  local ids; ids="$(security find-identity -v -p codesigning 2>/dev/null || true)"
+  case "$ids" in *"\"$IDENTITY\""*) return 0;; esac; return 1
+}
 
 # Creates the self-signed code-signing certificate once (private key stays in the login keychain).
 make_identity() {
@@ -168,10 +173,12 @@ NEW="$tmp/out/$APP_NAME.app"
 xattr -dr com.apple.quarantine "$NEW" 2>/dev/null || true
 
 # Was the installed copy signed with the stable local identity? If not, its grants cannot survive.
-# (-dvv: the Authority= lines only appear at verbosity 2; with -dv this check silently failed and every
-# update reset the permissions.)
+# (-dvv: the Authority= lines only appear at verbosity 2. Output captured, not piped: see has_identity.)
 old_stable=0
-if [ -d "$DEST" ] && codesign -dvv "$DEST" 2>&1 | grep -q "^Authority=$IDENTITY\$"; then old_stable=1; fi
+if [ -d "$DEST" ]; then
+  sig="$(codesign -dvv "$DEST" 2>&1 || true)"
+  case "$sig" in *"Authority=$IDENTITY"*) old_stable=1;; esac
+fi
 
 signed=0
 if [ "$RESIGN" = 1 ]; then
