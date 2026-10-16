@@ -10,6 +10,11 @@ All notable changes to WinBar are documented here. The format follows [Keep a Ch
 - Tray icons: volume, battery, Wi-Fi
 - Homebrew cask
 
+## [0.1.5] — 2026-10-16
+
+### Fixed
+- The double-arrow resize cursor still appeared at the window/bar boundary: macOS let the app under the bar own the cursor over the bar's first pixels. Windows kept above the bar now end 6 pt *above* it instead of 6 pt under it, so the app's resize zone ends before the bar — no cursor fight at all.
+
 ## [0.1.4] — 2026-10-16
 
 ### Changed

@@ -15,9 +15,11 @@ final class WindowHerder {
     private var enabled = false
     private let minHeight: CGFloat = 120
     private let expandRange: CGFloat = 200   // janelas que param até 200 pt acima da barra são esticadas no ajuste manual
-    /// Quanto a janela entra por baixo da barra: cobre a alça de redimensionar (~4 px dentro + 4 px fora da borda),
-    /// que senão mostra a seta dupla na fronteira. A barra impõe o cursor normal sobre si.
-    private let overlap: CGFloat = 6
+    /// Folga entre a borda inferior da janela e o topo da barra. A zona de redimensionar da janela vai ~4 pt
+    /// para fora da borda; com a borda 6 pt ACIMA da barra, essa zona termina antes da barra e a seta dupla
+    /// nunca aparece sobre ela — independe de qual app o macOS deixa mandar no cursor. (Com a janela entrando
+    /// por baixo da barra, o cursor do app vencia o nosso nos primeiros pixels.)
+    private let gap: CGFloat = 6
 
     private init() {}
 
@@ -112,7 +114,7 @@ final class WindowHerder {
         let screens = s.allScreens ? NSScreen.screens : Array(NSScreen.screens.prefix(1))
         guard let screen = screens.first(where: { $0.frame.contains(centerCocoa) })
             ?? screens.first(where: { $0.frame.intersects(NSRect(x: frame.minX, y: h0 - frame.maxY, width: frame.width, height: frame.height)) }) else { return nil }
-        let barTopAX = h0 - (screen.frame.minY + s.barSize.height) + overlap
+        let barTopAX = h0 - (screen.frame.minY + s.barSize.height) - gap
         let topLimitAX = h0 - screen.visibleFrame.maxY
         return Limits(barTopAX: barTopAX, topLimitAX: topLimitAX)
     }

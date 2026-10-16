@@ -117,7 +117,7 @@ If WinBar still appears under *System Settings › General › Login Items*, tog
 
 ## Known limitations
 
-- macOS does not let third-party apps reserve screen space; WinBar instead resizes windows that overlap it (can be turned off: *Keep windows above the bar*). Windows end 6 pt under the bar so their resize handle never shows on it.
+- macOS does not let third-party apps reserve screen space; WinBar instead resizes windows that overlap it (can be turned off: *Keep windows above the bar*). Windows end 6 pt above the bar, so their bottom resize zone (the double-arrow cursor) never reaches it.
 - Switching Spaces uses the system shortcuts: if *Switch to Desktop N* (Control+N) is enabled in *System Settings › Keyboard › Shortcuts › Mission Control* the jump is direct; otherwise WinBar steps with Control+←/→.
 - *Show desktop* relies on the system shortcut *Mission Control › Show Desktop* (default F11). If you disabled it, WinBar falls back to hiding every app.
 - The user interface is currently in Portuguese (pt-BR). English UI is on the [roadmap](CHANGELOG.md).

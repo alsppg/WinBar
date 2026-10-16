@@ -117,7 +117,7 @@ Se o WinBar ainda aparecer em *Ajustes do Sistema › Geral › Itens de Início
 
 ## Limitações conhecidas
 
-- O macOS não permite que apps de terceiros reservem área de tela; o WinBar redimensiona as janelas que o invadem (pode desligar: *Manter janelas acima da barra*). As janelas terminam 6 pt por baixo da barra para a alça de redimensionar nunca aparecer sobre ela.
+- O macOS não permite que apps de terceiros reservem área de tela; o WinBar redimensiona as janelas que o invadem (pode desligar: *Manter janelas acima da barra*). As janelas terminam 6 pt acima da barra, para a zona de redimensionar da borda inferior (a seta dupla) nunca alcançar a barra.
 - A troca de Mesa usa os atalhos do sistema: se *Alternar para a Mesa N* (Control+N) estiver ativado em *Ajustes do Sistema › Teclado › Atalhos › Mission Control* o pulo é direto; senão o WinBar anda com Control+←/→.
 - *Mostrar área de trabalho* depende do atalho do sistema *Mission Control › Mostrar Mesa* (padrão F11). Se você o desativou, o WinBar recorre a ocultar todos os apps.
 - A interface está em português (pt‑BR). Interface em inglês está no [roadmap](CHANGELOG.md).
