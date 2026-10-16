@@ -89,7 +89,8 @@ enum AXController {
         }
     }
 
-    static func postKey(keyCode: CGKeyCode, flags: CGEventFlags, toPid pid: pid_t? = nil) {
+    static func postKey(keyCode: CGKeyCode, flags: CGEventFlags, toPid pid: pid_t? = nil,
+                        tap: CGEventTapLocation = .cghidEventTap, source: CGEventSourceStateID = .hidSystemState) {
         // Disparado por atalho global (ex.: Control+Option+D), o usuário ainda segura os modificadores e o
         // sistema os soma ao evento sintético (F11 vira Ctrl+Opt+F11 e o atalho de destino não casa).
         // Espera soltarem o que não faz parte da combinação pedida (até 1 s).
@@ -99,7 +100,7 @@ enum AXController {
         while Date() < deadline, !CGEventSource.flagsState(.hidSystemState).intersection(mods).subtracting(wanted).isEmpty {
             usleep(20_000)
         }
-        guard let src = CGEventSource(stateID: .hidSystemState),
+        guard let src = CGEventSource(stateID: source),
               let down = CGEvent(keyboardEventSource: src, virtualKey: keyCode, keyDown: true),
               let up = CGEvent(keyboardEventSource: src, virtualKey: keyCode, keyDown: false) else { return }
         down.flags = flags
@@ -107,7 +108,7 @@ enum AXController {
         if let pid = pid {
             down.postToPid(pid); up.postToPid(pid)
         } else {
-            down.post(tap: .cghidEventTap); up.post(tap: .cghidEventTap)
+            down.post(tap: tap); up.post(tap: tap)
         }
     }
 

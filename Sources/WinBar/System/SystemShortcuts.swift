@@ -33,5 +33,20 @@ enum SystemShortcuts {
         return Key(keyCode: CGKeyCode(p[1]), flags: CGEventFlags(rawValue: UInt64(p[2]) & realModifiers))
     }
 
-    static func press(_ k: Key) { AXController.postKey(keyCode: k.keyCode, flags: k.flags) }
+    /// Variante de injeção (diagnóstico): `defaults write io.github.alsppg.winbar showDesktopVariant -int N`.
+    /// 0 = tap HID, flags como configurado · 1 = HID + fn · 2 = tap de sessão · 3 = sessão + fn ·
+    /// 4 = HID + fn com fonte de sessão combinada · 5 = tap de sessão anotado + fn.
+    static func press(_ k: Key) {
+        let v = UserDefaults.standard.integer(forKey: "showDesktopVariant")
+        let fn: CGEventFlags = .maskSecondaryFn
+        switch v {
+        case 1: AXController.postKey(keyCode: k.keyCode, flags: k.flags.union(fn))
+        case 2: AXController.postKey(keyCode: k.keyCode, flags: k.flags, tap: .cgSessionEventTap)
+        case 3: AXController.postKey(keyCode: k.keyCode, flags: k.flags.union(fn), tap: .cgSessionEventTap)
+        case 4: AXController.postKey(keyCode: k.keyCode, flags: k.flags.union(fn), source: .combinedSessionState)
+        case 5: AXController.postKey(keyCode: k.keyCode, flags: k.flags.union(fn), tap: .cgAnnotatedSessionEventTap)
+        default: AXController.postKey(keyCode: k.keyCode, flags: k.flags)
+        }
+        Log.info("tecla do sistema postada: variante=\(v) keyCode=\(k.keyCode)")
+    }
 }
