@@ -10,6 +10,14 @@ All notable changes to WinBar are documented here. The format follows [Keep a Ch
 - Tray icons: volume, battery, Wi-Fi
 - Homebrew cask
 
+## [0.1.7] — 2026-10-16
+
+### Fixed
+- Synthetic keys (show desktop, Mission Control, Spaces) fired while the user still held the hotkey's modifiers, so the system saw e.g. Control+Option+F11 and nothing happened. WinBar now waits (up to 1 s) for the modifiers to be released before posting.
+
+### Changed
+- Startup log line carries the version and the permission state; window-click log lines explain the decision (frontmost app, target, focused, minimized, hidden).
+
 ## [0.1.6] — 2026-10-16
 
 ### Fixed

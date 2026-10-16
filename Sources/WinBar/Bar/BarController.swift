@@ -215,12 +215,15 @@ final class BarController: NSObject, AppButtonDelegate, BarViewDelegate {
     /// Clique no botão de uma janela: como no Windows, a janela ativa minimiza; qualquer outra vem para a frente.
     /// "Ativa" é verificada ao vivo (app na frente + janela focada), não pelo estado em cache do botão.
     private func clickWindow(_ w: WindowInfo, app: NSRunningApplication?) {
+        let front = NSWorkspace.shared.frontmostApplication
+        let focused = WindowService.isFocused(w)
+        let why = "frente=\(front?.bundleIdentifier ?? "?") alvo=\(app?.bundleIdentifier ?? "?") focada=\(focused) minimizada=\(w.isMinimized) oculto=\(app?.isHidden ?? false)"
         if settings.activeClickMinimizes, let app = app, !app.isHidden, !w.isMinimized,
-           NSWorkspace.shared.frontmostApplication?.processIdentifier == app.processIdentifier, WindowService.isFocused(w) {
-            Log.info("clique: janela ativa minimizada")
+           front?.processIdentifier == app.processIdentifier, focused {
+            Log.info("clique: janela ativa minimizada (\(why))")
             AXController.minimize(w)
         } else {
-            Log.info("clique: janela trazida para a frente")
+            Log.info("clique: janela trazida para a frente (\(why))")
             AXController.activate(w, app: app)
         }
     }

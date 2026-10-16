@@ -16,7 +16,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             Log.info("outra instância do WinBar já está aberta; esta sai")
             exit(0)
         }
-        Log.info("WinBar iniciou" + (LoginItem.launchedByLaunchd ? " (pelo launchd)" : ""))
+        let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "dev"
+        Log.info("WinBar \(version) iniciou" + (LoginItem.launchedByLaunchd ? " (pelo launchd)" : "")
+                 + " acessibilidade=\(PermissionGate.accessibility) gravaçãoDeTela=\(PermissionGate.screenRecording)")
         _ = SettingsStore.shared
         _ = PinStore.shared
         LoginItem.ensure(enabled: SettingsStore.shared.s.launchAtLogin)
