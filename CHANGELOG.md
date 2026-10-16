@@ -13,6 +13,7 @@ All notable changes to WinBar are documented here. The format follows [Keep a Ch
 ## [0.1.6] — 2026-10-16
 
 ### Fixed
+- `install.sh` reset the Accessibility / Screen Recording grants on **every** update even though the signature was stable: the check used `codesign -dv`, which does not print the `Authority=` line (`-dvv` does). Permissions now really survive updates.
 - *Show desktop* did nothing: the synthesized F11 carried the "fn" modifier bit stored in the system shortcut, which changes how the key is interpreted. Only ⇧⌃⌥⌘ are sent now.
 
 ### Added

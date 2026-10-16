@@ -168,8 +168,10 @@ NEW="$tmp/out/$APP_NAME.app"
 xattr -dr com.apple.quarantine "$NEW" 2>/dev/null || true
 
 # Was the installed copy signed with the stable local identity? If not, its grants cannot survive.
+# (-dvv: the Authority= lines only appear at verbosity 2; with -dv this check silently failed and every
+# update reset the permissions.)
 old_stable=0
-if [ -d "$DEST" ] && codesign -dv "$DEST" 2>&1 | grep -q "Authority=$IDENTITY"; then old_stable=1; fi
+if [ -d "$DEST" ] && codesign -dvv "$DEST" 2>&1 | grep -q "^Authority=$IDENTITY\$"; then old_stable=1; fi
 
 signed=0
 if [ "$RESIGN" = 1 ]; then
