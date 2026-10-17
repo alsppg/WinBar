@@ -1,5 +1,4 @@
 import AppKit
-import ServiceManagement
 
 /// Inicialização com o sistema via LaunchAgent do usuário (~/Library/LaunchAgents/<label>.plist):
 /// RunAtLoad abre o WinBar ao iniciar a sessão e KeepAlive/SuccessfulExit=false reabre se ele cair
@@ -63,11 +62,6 @@ enum LoginItem {
     static func disable() {
         try? FileManager.default.removeItem(at: plistURL)
         Log.info("login item: LaunchAgent removido")
-    }
-
-    /// Registro antigo (SMAppService / Itens de Início) de versões anteriores: evita instância dupla no login.
-    static func removeLegacyRegistration() {
-        _ = try? SMAppService.mainApp.unregister()
     }
 
     @discardableResult

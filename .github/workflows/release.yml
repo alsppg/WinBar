@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: "Existing tag to (re)build and attach assets to, e.g. v0.1.0"
+        description: "Release tag to build and publish, e.g. v1.0.0 (created at the current commit if it does not exist)"
         required: true
 
 permissions:
@@ -34,8 +34,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           TAG="${{ github.event.inputs.tag || github.ref_name }}"
+          # Release notes = this version's section of CHANGELOG.md (no auto-generated commit list).
+          awk -v v="${TAG#v}" '/^## \[/{p=0} $0 ~ "^## \\[" v "\\]"{p=1; next} p' CHANGELOG.md > notes.md
+          [ -s notes.md ] || echo "See CHANGELOG.md." > notes.md
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" dist/*.zip dist/*.sha256 --clobber
+            gh release edit "$TAG" --title "WinBar $TAG" --notes-file notes.md
           else
-            gh release create "$TAG" dist/*.zip dist/*.sha256 --title "WinBar $TAG" --generate-notes
+            gh release create "$TAG" dist/*.zip dist/*.sha256 --title "WinBar $TAG" --notes-file notes.md
           fi

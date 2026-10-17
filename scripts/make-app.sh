@@ -59,7 +59,7 @@ EOF
   # shellcheck disable=SC2046
   xcrun swiftc $OPT -swift-version 5 -module-name WinBar \
     -target "$TARGET" -sdk "$SDK" \
-    -framework AppKit -framework SwiftUI -framework ScreenCaptureKit -framework Carbon -framework ServiceManagement \
+    -framework AppKit -framework SwiftUI -framework ScreenCaptureKit -framework Carbon \
     $(find Sources/WinBar -name '*.swift' | sort) \
     -o build/WinBar
   BIN="build/WinBar"

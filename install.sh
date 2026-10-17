@@ -88,8 +88,7 @@ PLIST
   launchctl bootstrap "$DOMAIN" "$AGENT_PLIST" 2>/dev/null
 }
 
-# No pipes into grep -q here: with pipefail, grep -q closing the pipe early makes the producer fail (SIGPIPE)
-# and the whole test comes out false.
+# Captured output, not "| grep -q": under pipefail, grep -q closing the pipe early fails the producer (SIGPIPE).
 has_identity() {
   local ids; ids="$(security find-identity -v -p codesigning 2>/dev/null || true)"
   case "$ids" in *"\"$IDENTITY\""*) return 0;; esac; return 1
@@ -173,7 +172,7 @@ NEW="$tmp/out/$APP_NAME.app"
 xattr -dr com.apple.quarantine "$NEW" 2>/dev/null || true
 
 # Was the installed copy signed with the stable local identity? If not, its grants cannot survive.
-# (-dvv: the Authority= lines only appear at verbosity 2. Output captured, not piped: see has_identity.)
+# (-dvv: the Authority= lines only appear at verbosity 2.)
 old_stable=0
 if [ -d "$DEST" ]; then
   sig="$(codesign -dvv "$DEST" 2>&1 || true)"

@@ -22,7 +22,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         _ = SettingsStore.shared
         _ = PinStore.shared
         LoginItem.ensure(enabled: SettingsStore.shared.s.launchAtLogin)
-        LoginItem.removeLegacyRegistration()
         _ = AppTracker.shared
         StartIndex.shared.refreshIfStale()
 

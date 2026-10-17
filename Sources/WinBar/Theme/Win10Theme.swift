@@ -17,7 +17,6 @@ enum W10 {
         static let onAccent      = NSColor(hex: 0xFFFFFF)
         static let indicator     = NSColor(hex: 0x4CC2FF)
         static let indicatorOnAccent = NSColor(hex: 0xFFFFFF)
-        static let attention     = NSColor(hex: 0xF7630C)
         static let success       = NSColor(hex: 0x06B025)
         static let warning       = NSColor(hex: 0xFFB900)
     }
